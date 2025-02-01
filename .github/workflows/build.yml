@@ -45,12 +45,12 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake ..
+          cmake --install ..
           make
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build
+          name: build-${{matrix.os}}
           path: build/
           retention-days: 7
