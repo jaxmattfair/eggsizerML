@@ -45,7 +45,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake --install ..
+          cmake ..
           make
 
       - name: Upload Build Artifacts
