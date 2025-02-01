@@ -12,7 +12,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
-      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
       
@@ -24,13 +23,14 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake qt5-default libopencv-dev
+          sudo apt-get install -y cmake libopencv-dev
+          sudo apt install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
       
       - name: Windows Dependencies
         if: matrix.os == 'windows-latest'
         run: |
           choco install cmake
-          choco install qt5
+          choco install qt5-default
           choco install opencv
         
       - name: macOS Dependencies
@@ -46,3 +46,9 @@ jobs:
           cd build
           cmake ..
           make
+
+      # publish the build artifacts
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build
