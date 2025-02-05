@@ -44,6 +44,7 @@ jobs:
 
       - name: Build
         run: |
+          set OpenCV_DIR=C:\tools\opencv\build
           mkdir build
           cd build
           cmake ..
