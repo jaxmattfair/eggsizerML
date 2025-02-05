@@ -33,6 +33,7 @@ jobs:
           choco install cmake
           choco install qt5-default
           choco install opencv
+          set OpenCV_DIR=C:\tools\opencv\build
         
       - name: macOS Dependencies
         if: runner.os == 'macOS'
