@@ -25,13 +25,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake libopencv-dev
-          sudo apt install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
+          sudo apt install qtbase6-dev qtchooser qt6-qmake qtbase6-dev-tools
       
       - name: Windows Dependencies
         if: matrix.os == 'windows-latest'
         run: |
           choco install cmake
-          choco install qt5-default
+          choco install qt6-default
           choco install opencv
           set OpenCV_DIR=C:\tools\opencv\build
         
@@ -39,7 +39,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install cmake
-          brew install qt5
+          brew install qt6
           brew install opencv
 
       - name: Build
