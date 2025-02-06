@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        os: [windows-latest, macos-13, macos-14]
       
     steps:
       - name: Checkout
@@ -30,10 +30,13 @@ jobs:
       - name: Windows Dependencies
         if: matrix.os == 'windows-latest'
         run: |
-          choco install cmake
-          choco install qt6-default
-          choco install opencv
-          set OpenCV_DIR=C:\tools\opencv\build
+          cd C:\
+          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --apply-install-arguments-to-dependencies
+          choco install opencv -y --install-args="'/DIR=C:\tools'"
+          choco install python
+          python -m pip install -U pip
+          python -m pip install aqtinstall
+          aqt install-qt windows desktop 6.8.2 win64_msvc2022_64 -m all
         
       - name: macOS Dependencies
         if: runner.os == 'macOS'
@@ -42,7 +45,8 @@ jobs:
           brew install qt6
           brew install opencv
 
-      - name: Build
+      - name: Build Mingw
+        if: runner.os == 'macOS' || matrix.os == 'ubuntu-latest'
         run: |
           set OpenCV_DIR=C:\tools\opencv\build
           mkdir build
@@ -50,6 +54,20 @@ jobs:
           cmake ..
           make
 
+      - name: Setup MSBuild
+        if: matrix.os == 'windows-latest'
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-version: 17.0
+      - name: Build MSVC
+        if: matrix.os == 'windows-latest'
+        run: |
+          set OpenCV_DIR=C:\tools\opencv\build
+          mkdir build
+          cd build
+          cmake ..
+          msbuild eggsizerML.sln /p:Configuration=Release
+          
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
