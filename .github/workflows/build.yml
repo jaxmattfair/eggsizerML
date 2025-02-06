@@ -59,6 +59,7 @@ jobs:
         uses: microsoft/setup-msbuild@v2
         with:
           msbuild-version: 17.0
+
       - name: Build MSVC
         if: matrix.os == 'windows-latest'
         run: |
@@ -67,8 +68,9 @@ jobs:
           cd build
           cmake ..
           msbuild eggsizerML.sln /p:Configuration=Release
+
       - name: Link DLLs
-        if: matrix.os == "windows-latest'
+        if: matrix.os == 'windows-latest'
         run: |
           C:\6.8.2\msvc2022_64\bin\windeployqt.exe D:\a\eggsizerML\eggsizerML\build\Release\eggsizerML.exe
           copy C:\tools\opencv\build\x64\vc16\bin\opencv_world4110.dll D:\a\eggsizerML\eggsizerML\build\Release\
