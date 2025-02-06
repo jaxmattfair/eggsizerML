@@ -75,7 +75,7 @@ jobs:
           C:\6.8.2\msvc2022_64\bin\windeployqt.exe D:\a\eggsizerML\eggsizerML\build\Release\eggsizerML.exe
           copy C:\tools\opencv\build\x64\vc16\bin\opencv_world4110.dll D:\a\eggsizerML\eggsizerML\build\Release\
           move D:\a\eggsizerML\eggsizerML\build\Release D:\a\eggsizerML\eggsizerML\Release
-          rd D:\a\eggsizerML\eggsizerML\build
+          rd /s /q D:\a\eggsizerML\eggsizerML\build
           move D:\a\eggsizerML\eggsizerML\Release D:\a\eggsizerML\eggsizerML\eggsizerML\build
 
       - name: Upload Build Artifacts
