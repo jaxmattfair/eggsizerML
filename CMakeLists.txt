@@ -78,3 +78,19 @@ install(TARGETS eggsizerML
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(eggsizerML)
 endif()
+
+# runs doxygen documentation upon build (can remove if this is redundant)
+find_package(Doxygen REQUIRED)
+
+if (DOXYGEN_FOUND)
+    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
+    set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/docs)
+
+    add_custom_target(doc_doxygen
+        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_IN}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM)
+else()
+    message(FATAL_ERROR "Doxygen is required but was not found. Please install it.")
+endif()
