@@ -1,4 +1,4 @@
-name: Cland Tidy
+name: Clang Tidy
 
 on:
   push:
