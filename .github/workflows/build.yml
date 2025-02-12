@@ -12,8 +12,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [windows-latest, macos-13, macos-14]
       
     steps:
       - name: Checkout
@@ -23,25 +24,65 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake qt5-default libopencv-dev
+          sudo apt-get install -y cmake libopencv-dev
+          sudo apt install qtbase6-dev qtchooser qt6-qmake qtbase6-dev-tools
       
       - name: Windows Dependencies
         if: matrix.os == 'windows-latest'
         run: |
-          choco install cmake
-          choco install qt5
-          choco install opencv
+          cd C:\
+          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --apply-install-arguments-to-dependencies
+          choco install opencv -y --install-args="'/DIR=C:\tools'"
+          choco install python
+          python -m pip install -U pip
+          python -m pip install aqtinstall
+          aqt install-qt windows desktop 6.8.2 win64_msvc2022_64 -m all
         
       - name: macOS Dependencies
-        if: matrix.os == 'macOS-latest'
+        if: runner.os == 'macOS'
         run: |
           brew install cmake
-          brew install qt5
+          brew install qt6
           brew install opencv
 
-      - name: Build
+      - name: Build Mingw
+        if: runner.os == 'macOS' || matrix.os == 'ubuntu-latest'
         run: |
+          set OpenCV_DIR=C:\tools\opencv\build
           mkdir build
           cd build
           cmake ..
           make
+
+      - name: Setup MSBuild
+        if: matrix.os == 'windows-latest'
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-version: 17.0
+
+      - name: Build MSVC
+        if: matrix.os == 'windows-latest'
+        run: |
+          set OpenCV_DIR=C:\tools\opencv\build
+          mkdir build
+          cd build
+          cmake ..
+          msbuild eggsizerML.sln /p:Configuration=Release
+
+      - name: Link DLLs
+        if: matrix.os == 'windows-latest'
+        run: |
+          C:\6.8.2\msvc2022_64\bin\windeployqt.exe D:\a\eggsizerML\eggsizerML\build\Release\eggsizerML.exe
+          copy C:\tools\opencv\build\x64\vc16\bin\opencv_world4110.dll D:\a\eggsizerML\eggsizerML\build\Release\
+          move D:\a\eggsizerML\eggsizerML\build\Release\ D:\a\eggsizerML\eggsizerML\Release\
+          move D:\a\eggsizerML\eggsizerML\build\ D:\a\eggsizerML\eggsizerML\trash\
+          move D:\a\eggsizerML\eggsizerML\Release\ D:\a\eggsizerML\eggsizerML\build\
+          
+          
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{matrix.os}}
+          path: build/
+          retention-days: 7
