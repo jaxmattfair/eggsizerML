@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Dependencies
-        run: sudo apt-get update && sudo apt-get install -y clang
+        run: sudo apt-get update && sudo apt-get install -y clang && clang-format -style=llvm -dump-config > .clang-format
       - name: Run C++ Linter
         uses: cpp-linter/cpp-linter-action@v2
         with:
