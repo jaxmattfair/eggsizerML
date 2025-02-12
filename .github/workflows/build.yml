@@ -100,11 +100,12 @@ jobs:
         with:
           name: build-${{matrix.os}}
           path: .
-      - name: Unzip Artifact (Windows)
+      - name: Extract Artifact (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           mkdir artifact
-          tar -xf build-${{matrix.os}}.zip -d artifact
+          Expand-Archive -Path build-${{ matrix-os }}.zip -DestinationPath artifact
+        shell: powershell
       - name: Run Binary (Windows)
         if: matrix.os == 'windows-latest'
         run: artifact/eggsizerML.exe
