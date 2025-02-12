@@ -1,0 +1,20 @@
+name: Cland Tidy
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Dependencies
+        run: sudo apt-get update && sudo apt-get install -y clang
+      - name: Run C++ Linter
+        uses: cpp-linter/cpp-linter-action@v2
+        with:
+          style: file
+          checks: "clang-tidy"
