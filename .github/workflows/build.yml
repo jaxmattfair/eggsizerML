@@ -99,7 +99,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-${{matrix.os}}
-          path: D:\a\
+          path: D:\a\artifact\
 
       - name: Debug
         run: |
@@ -108,7 +108,7 @@ jobs:
           
       - name: Run Binary (Windows)
         if: matrix.os == 'windows-latest'
-        run: D:\a\build-windows-latest\eggsizerML.exe
+        run: D:\a\artifact\eggsizerML.exe
         shell: cmd
         
       
