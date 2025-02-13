@@ -100,6 +100,12 @@ jobs:
         with:
           name: build-${{matrix.os}}
           path: D:\a\
+
+      - name: Debug
+        run: |
+          cd D:\a\
+          ls -l
+          
       - name: Run Binary (Windows)
         if: matrix.os == 'windows-latest'
         run: D:\a\build-windows-latest\eggsizerML.exe
