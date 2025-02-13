@@ -102,7 +102,7 @@ jobs:
           path: D:\a\
       - name: Run Binary (Windows)
         if: matrix.os == 'windows-latest'
-        run: D:\a\build-windows-latest/eggsizerML.exe
+        run: D:\a\build-windows-latest\eggsizerML.exe
         shell: cmd
         
       
