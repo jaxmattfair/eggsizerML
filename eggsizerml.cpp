@@ -1,5 +1,11 @@
 #include "eggsizerml.h"
 #include "./ui_eggsizerml.h"
+#include <iostream>
+#include "asmOpenCV.h"
+
+
+cv::Mat src; // current image, unanalyzed
+cv::Mat dst; // current image, analyzed
 
 eggsizerML::eggsizerML(QWidget *parent)
     : QMainWindow(parent)
@@ -12,30 +18,19 @@ eggsizerML::~eggsizerML()
 {
     delete ui;
 }
-
 // < ---------------------------------------- >
-// UTILITIES
-QPixmap matToPixmap(cv::Mat src)
-{
-    // assume the image is grayscale, then
-    // swap to color according to channels
-    QImage::Format format = QImage::Format_Grayscale8;
-    int bpp=src.channels();
-    if (bpp==3) format = QImage::Format_RGB888;
+// OpenCV Analysis
+void autoCanny(cv::Mat src, cv::Mat *dst, float sigma=0.33) {
+    std::vector<uchar> array;
+    // cv::Mat srcCopy;
+    // src->copyTo(srcCopy);
+    array.assign(src.data, src.data + src.total()*src.channels());
+    std::nth_element(array.begin(), array.begin() + 1, array.end(), std::greater{});
+    double v = array[1];
 
-    QImage img(src.cols, src.rows, format);
-    uchar *sptr, *dptr;
-    int linesize=src.cols*bpp;
-
-    // scan the matrix into the image
-    for (int y=0; y<src.rows; y++) {
-        sptr=src.ptr(y);
-        dptr=img.scanLine(y);
-        memcpy(dptr, sptr, linesize);
-    }
-
-    if (bpp==3) return QPixmap::fromImage(img.rgbSwapped());
-    return QPixmap::fromImage(img);
+    double lower = std::max(0.0, (1.0 - sigma) * v);
+    double upper = std::min(255.0, (1.0 + sigma) * v);
+    cv::Canny(src, *dst, lower, upper);
 }
 // < ---------------------------------------- >
 
@@ -72,14 +67,18 @@ static void initializeImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMo
 // opens file dialog
 void eggsizerML::open()
 {
+    // loadFile("");
+    // return;
     QFileDialog dialog(this, tr("Select Image"));
 
     while (dialog.exec() == QDialog::Accepted && !loadFile(dialog.selectedFiles().constFirst())) {}
 }
 
 // loads file into label element
-bool eggsizerML::loadFile(const QString &fileName)
+bool eggsizerML::loadFile(const QString &fileName="")
 {
+    extern cv::Mat src;
+    // QString testfileName = "/Users/jax/Downloads/data/LT_Eggs/23Y6115_2.jpg";
     QImageReader reader(fileName);
     reader.setAutoTransform(true);
     const QImage newImage = reader.read();
@@ -90,12 +89,10 @@ bool eggsizerML::loadFile(const QString &fileName)
     }
     ui->imgDisp_1->setPixmap(QPixmap::fromImage(newImage));
 
-    cv::Mat image = cv::imread(fileName.toStdString());
-    cv::Mat grayImg;
-    cv::cvtColor(image, grayImg, cv::COLOR_RGBA2GRAY);
-    ui->imgDisp_2->setPixmap(matToPixmap(grayImg));
-    // cv::namedWindow("TestCV2");
-    // cv::imshow("TestCV2", grayImg);
+    src = cv::imread(fileName.toStdString());
+    cv::Mat testImg;
+    autoCanny(src, &testImg);
+    ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(testImg));
     return true;
 }
 
@@ -105,3 +102,20 @@ void eggsizerML::on_fileOpen_btn_clicked()
     open();
 }
 // < ---------------------------------------- >
+
+
+
+void eggsizerML::on_horizontalSlider_sliderMoved(int position)
+{
+    extern cv::Mat src;
+    if (!src.empty()) {
+        float newSigma = ui->horizontalSlider->value() / 100.0f;
+        ui->sigma_val_label->setText(QString::number(newSigma));
+        autoCanny(src, &dst, newSigma);
+        ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(dst));
+    } else {
+        std::cout << "Fuckballs" << "\n";
+    }
+
+}
+
