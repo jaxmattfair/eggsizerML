@@ -104,7 +104,7 @@ jobs:
       - name: Debug
         run: |
           cd D:\a\
-          ls -l
+          dir
           
       - name: Run Binary (Windows)
         if: matrix.os == 'windows-latest'
