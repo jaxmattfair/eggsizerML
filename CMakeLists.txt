@@ -9,6 +9,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+
 IF(WIN32)
 	set(OpenCV_DIR "C:/tools/opencv/build")
 	set(QT_DIR "C:/6.8.2/msvc2022_64/lib/cmake/Qt6")
@@ -25,6 +27,8 @@ set(PROJECT_SOURCES
         eggsizerml.cpp
         eggsizerml.h
         eggsizerml.ui
+        edge_detection.cpp
+        edge_detection.hpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -68,6 +72,21 @@ set_target_properties(eggsizerML PROPERTIES
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
 )
+
+enable_testing()
+
+set(TEST_SOURCES
+    tests/edge_detection_test.cpp
+    edge_detection.cpp
+)
+
+# executable for running tests
+add_executable(edge_detection_test ${TEST_SOURCES})
+# link Boost and OpenCV libraries
+target_link_libraries(edge_detection_test PRIVATE ${OpenCV_LIBS} Boost::unit_test_framework)
+target_include_directories(edge_detection_test PRIVATE ${CMAKE_SOURCE_DIR})
+# register test
+add_test(NAME EdgeDetectionTest COMMAND edge_detection_test)
 
 include(GNUInstallDirs)
 install(TARGETS eggsizerML
