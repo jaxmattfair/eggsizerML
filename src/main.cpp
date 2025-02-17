@@ -1,4 +1,4 @@
-#include "eggsizerml.h"
+#include "../include/eggsizerml.h"
 
 #include <QApplication>
 

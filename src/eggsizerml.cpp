@@ -1,7 +1,7 @@
-#include "eggsizerml.h"
-#include "./ui_eggsizerml.h"
+#include "../include/eggsizerml.h"
+#include "../include/ui_eggsizerml.h"
+#include "../include/asmOpenCV.h"
 #include <iostream>
-#include "asmOpenCV.h"
 
 
 cv::Mat src; // current image, unanalyzed
