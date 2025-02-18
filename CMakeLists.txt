@@ -24,8 +24,10 @@ set(PROJECT_SOURCES
         src/main.cpp
         src/eggsizerml.cpp
         src/eggsizerml.ui
+        src/cannyDetect.cpp
         include/eggsizerml.h
         include/asmOpenCV.h
+        include/cannyDetect.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

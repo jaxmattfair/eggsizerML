@@ -1,8 +1,7 @@
 #include "../include/eggsizerml.h"
 #include "../include/ui_eggsizerml.h"
 #include "../include/asmOpenCV.h"
-#include <iostream>
-
+#include "../include/cannyDetect.h"
 
 cv::Mat src; // current image, unanalyzed
 cv::Mat dst; // current image, analyzed
@@ -18,24 +17,10 @@ eggsizerML::~eggsizerML()
 {
     delete ui;
 }
-// < ---------------------------------------- >
-// OpenCV Analysis
-void autoCanny(cv::Mat src, cv::Mat *dst, float sigma=0.33) {
-    std::vector<uchar> array;
-    // cv::Mat srcCopy;
-    // src->copyTo(srcCopy);
-    array.assign(src.data, src.data + src.total()*src.channels());
-    std::nth_element(array.begin(), array.begin() + 1, array.end(), std::greater{});
-    double v = array[1];
 
-    double lower = std::max(0.0, (1.0 - sigma) * v);
-    double upper = std::min(255.0, (1.0 + sigma) * v);
-    cv::Canny(src, *dst, lower, upper);
-}
-// < ---------------------------------------- >
 
 // < ---------------------------------------- >
-// BASIC IMAGE UPLOAD/PROCESSING WITH OPENCV
+// BASIC FILE/FOLDER UPLOAD/PROCESSING WITH OPENCV
 static void initializeImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMode acceptMode)
 {
     static bool firstDialog = true;
@@ -67,8 +52,6 @@ static void initializeImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMo
 // opens file dialog
 void eggsizerML::open()
 {
-    // loadFile("");
-    // return;
     QFileDialog dialog(this, tr("Select Image"));
 
     while (dialog.exec() == QDialog::Accepted && !loadFile(dialog.selectedFiles().constFirst())) {}
@@ -96,15 +79,11 @@ bool eggsizerML::loadFile(const QString &fileName="")
     return true;
 }
 
-// button connect
-void eggsizerML::on_fileOpen_btn_clicked()
-{
-    open();
-}
 // < ---------------------------------------- >
 
 
-
+// < ---------------------------------------- >
+// SLOT CONNECTORS
 void eggsizerML::on_horizontalSlider_sliderMoved(int position)
 {
     extern cv::Mat src;
@@ -113,9 +92,11 @@ void eggsizerML::on_horizontalSlider_sliderMoved(int position)
         ui->sigma_val_label->setText(QString::number(newSigma));
         autoCanny(src, &dst, newSigma);
         ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(dst));
-    } else {
-        std::cout << "Fuckballs" << "\n";
     }
-
 }
 
+void eggsizerML::on_fileOpen_btn_clicked()
+{
+    open();
+}
+// < ---------------------------------------- >
