@@ -10,10 +10,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 IF(WIN32)
-	set(OpenCV_DIR "C:/tools/opencv/build")
-	set(QT_DIR "C:/6.8.2/msvc2022_64/lib/cmake/Qt6")
-	set(Qt6_DIR "C:/6.8.2/msvc2022_64/lib/cmake/Qt6")
-	set(CMAKE_CXX_COMPILER "gcc")
+    # Extra IF so that devs can use either msvc or mingw
+    # (Jax says ALWAYS use mingw, msvc SUCKS)
+    IF(EXISTS "C:/6.8.2/msvc2022_64/lib/cmake/Qt6")
+        set(OpenCV_DIR "C:/tools/opencv/build")
+        set(QT_DIR "C:/6.8.2/msvc2022_64/lib/cmake/Qt6")
+        set(Qt6_DIR "C:/6.8.2/msvc2022_64/lib/cmake/Qt6")
+        set(CMAKE_CXX_COMPILER "gcc")
+    ENDIF()
 ENDIF()
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
