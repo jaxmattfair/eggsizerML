@@ -78,6 +78,11 @@ jobs:
           move D:\a\eggsizerML\eggsizerML\build\ D:\a\eggsizerML\eggsizerML\trash\
           move D:\a\eggsizerML\eggsizerML\Release\ D:\a\eggsizerML\eggsizerML\build\
 
+      - name: Debug macOS File Paths
+        if: runner.os == 'macOS'
+        run: |
+          find /opt/homebrew/Cellar/qt -type f -name "macdeployqt"
+          find /opt/homebrew/Cellar/opencv -type f -name "libopencv_world.4.11.dylib"
       - name: Package macOS Deps
         if: runner.os == 'macOS'
         run: |
