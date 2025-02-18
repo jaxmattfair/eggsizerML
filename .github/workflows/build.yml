@@ -42,7 +42,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install cmake
-          brew install qt6
+          brew install qt6@6.8.2
           brew install opencv
 
       - name: Build Mingw
@@ -82,7 +82,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           find /opt/homebrew/Cellar/qt -type f -name "macdeployqt"
-          find /opt/homebrew/Cellar/opencv -type f -name "libopencv_world.4.11.dylib"
+          find /opt/homebrew/Cellar/opencv -type f -name "libopencv_world*.dylib"
       - name: Package macOS Deps
         if: runner.os == 'macOS'
         run: |
