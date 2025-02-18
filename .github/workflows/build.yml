@@ -82,10 +82,11 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           find /opt/homebrew/Cellar/qt -type f -name "macdeployqt"
-          find /opt/homebrew/Cellar/opencv -type f -name "libopencv_world*.dylib"
+          find /opt/homebrew/Cellar/opencv -type f -name "*.dylib"
       - name: Package macOS Deps
         if: runner.os == 'macOS'
         run: |
+          ls
           /opt/homebrew/Cellar/qt/6.7.3/bin/macdeployqt eggsizerML.app -dmg
           cp -r /opt/homebrew/Cellar/opencv/4.8.0_2/lib/libopencv_world.4.11.dylib eggsizerML.app/Contents/MacOS/
           
