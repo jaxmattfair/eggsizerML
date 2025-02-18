@@ -86,8 +86,8 @@ jobs:
       - name: Package macOS Deps
         if: runner.os == 'macOS'
         run: |
-          /opt/homebrew/Cellar/qt/6.7.3/bin/macdeployqt build/Release/eggsizerML.app -dmg
-          cp -r /opt/homebrew/Cellar/opencv/4.8.0_2/lib/libopencv_world.4.11.dylib build/Release/eggsizerML.app/Contents/MacOS/
+          /opt/homebrew/Cellar/qt/6.7.3/bin/macdeployqt eggsizerML.app -dmg
+          cp -r /opt/homebrew/Cellar/opencv/4.8.0_2/lib/libopencv_world.4.11.dylib eggsizerML.app/Contents/MacOS/
           
 
       - name: Upload Build Artifacts
