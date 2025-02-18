@@ -92,7 +92,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           ls build/
-          /opt/homebrew/Cellar/qt/6.7.3/bin/macdeployqt build/eggsizerML.app -dmg
+          /opt/homebrew/Cellar/qt/6.7.3/bin/macdeployqt build/eggsizerML.app -dmg -libpath=/opt/homebrew/Cellar/opencv/4.11.0/lib/
           cp -r /opt/homebrew/Cellar/opencv/4.11.0/lib/*.dylib build/eggsizerML.app/Contents/MacOS/
           
 
