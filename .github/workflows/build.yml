@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [windows-latest, macos-13, macos-14]
       
@@ -42,7 +42,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install cmake
-          brew install qt6@6.8.2
+          brew install qt6
           brew install opencv
 
       - name: Build Mingw
@@ -86,7 +86,7 @@ jobs:
       - name: Package macOS Deps
         if: runner.os == 'macOS'
         run: |
-          /opt/homebrew/Cellar/qt@6/6.8.2/bin/macdeployqt build/Release/eggsizerML.app -dmg
+          /opt/homebrew/Cellar/qt/6.7.3/bin/macdeployqt build/Release/eggsizerML.app -dmg
           cp -r /opt/homebrew/Cellar/opencv/4.8.0_2/lib/libopencv_world.4.11.dylib build/Release/eggsizerML.app/Contents/MacOS/
           
 
