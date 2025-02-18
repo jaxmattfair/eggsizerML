@@ -69,7 +69,7 @@ jobs:
           cmake ..
           msbuild eggsizerML.sln /p:Configuration=Release
 
-      - name: Link DLLs
+      - name: Package Windows Deps
         if: matrix.os == 'windows-latest'
         run: |
           C:\6.8.2\msvc2022_64\bin\windeployqt.exe D:\a\eggsizerML\eggsizerML\build\Release\eggsizerML.exe
@@ -77,7 +77,12 @@ jobs:
           move D:\a\eggsizerML\eggsizerML\build\Release\ D:\a\eggsizerML\eggsizerML\Release\
           move D:\a\eggsizerML\eggsizerML\build\ D:\a\eggsizerML\eggsizerML\trash\
           move D:\a\eggsizerML\eggsizerML\Release\ D:\a\eggsizerML\eggsizerML\build\
-          
+
+      - name: Package macOS Deps
+        if: runner.os == 'macOS'
+        run: |
+          /opt/homebrew/Cellar/qt@6/6.8.2/bin/macdeployqt build/Release/eggsizerML.app -dmg
+          cp -r /opt/homebrew/Cellar/opencv/4.8.0_2/lib/libopencv_world.4.11.dylib build/Release/eggsizerML.app/Contents/MacOS/
           
 
       - name: Upload Build Artifacts
