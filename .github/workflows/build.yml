@@ -45,6 +45,11 @@ jobs:
           brew install qt6
           brew install opencv
 
+      - name: Find qt6 cmake files for set command
+        if: runner.os == 'macOS'
+        run: |
+          find /opt/homebrew/Cellar/qt -type f -name "Qt6Config.cmake"
+          find /opt/homebrew/Cellar/qt -type f -name "Qt6CoreConfig.cmake"
       - name: Build Mingw
         if: runner.os == 'macOS' || matrix.os == 'ubuntu-latest'
         run: |
