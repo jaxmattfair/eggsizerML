@@ -3,6 +3,8 @@
 #include "../include/asmOpenCV.h"
 #include "../include/cannyDetect.h"
 
+// GLOBAL APPLICATION DATA STORAGE
+//(keep this to a MINIMUM)
 cv::Mat src; // current image, unanalyzed
 cv::Mat dst; // current image, analyzed
 
@@ -11,6 +13,9 @@ eggsizerML::eggsizerML(QWidget *parent)
     , ui(new Ui::eggsizerML)
 {
     ui->setupUi(this);
+    ui->cannySigmaSlider->setSliderPosition(33);
+    ui->sigma_val_label->setText(QString::number(ui->cannySigmaSlider->value() / 100.0f ));
+    ui->cannySigmaSlider->setDisabled(1);
 }
 
 eggsizerML::~eggsizerML()
@@ -57,11 +62,9 @@ void eggsizerML::open()
     while (dialog.exec() == QDialog::Accepted && !loadFile(dialog.selectedFiles().constFirst())) {}
 }
 
-// loads file into label element
+// loads file into label element & CV mat for analysis
 bool eggsizerML::loadFile(const QString &fileName="")
 {
-    extern cv::Mat src;
-    // QString testfileName = "/Users/jax/Downloads/data/LT_Eggs/23Y6115_2.jpg";
     QImageReader reader(fileName);
     reader.setAutoTransform(true);
     const QImage newImage = reader.read();
@@ -71,11 +74,10 @@ bool eggsizerML::loadFile(const QString &fileName="")
         return false;
     }
     ui->imgDisp_1->setPixmap(QPixmap::fromImage(newImage));
-
     src = cv::imread(fileName.toStdString());
-    cv::Mat testImg;
-    autoCanny(src, &testImg);
-    ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(testImg));
+    autoCanny(src, &dst);
+    ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(dst));
+    ui->cannySigmaSlider->setDisabled(0);
     return true;
 }
 
@@ -83,12 +85,11 @@ bool eggsizerML::loadFile(const QString &fileName="")
 
 
 // < ---------------------------------------- >
-// SLOT CONNECTORS
-void eggsizerML::on_horizontalSlider_sliderMoved(int position)
+// SLOT CONNECTORS (BASICALLY CALLBACKS)
+void eggsizerML::on_cannySigmaSlider_sliderMoved(int position)
 {
-    extern cv::Mat src;
     if (!src.empty()) {
-        float newSigma = ui->horizontalSlider->value() / 100.0f;
+        float newSigma = ui->cannySigmaSlider->value() / 100.0f;
         ui->sigma_val_label->setText(QString::number(newSigma));
         autoCanny(src, &dst, newSigma);
         ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(dst));
