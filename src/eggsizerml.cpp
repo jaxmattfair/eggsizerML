@@ -1,9 +1,10 @@
-#include "eggsizerml.h"
-#include "./ui_eggsizerml.h"
-#include <iostream>
-#include "asmOpenCV.h"
+#include "../include/eggsizerml.h"
+#include "../include/ui_eggsizerml.h"
+#include "../include/asmOpenCV.h"
+#include "../include/cannyDetect.h"
 
-
+// GLOBAL APPLICATION DATA STORAGE
+//(keep this to a MINIMUM)
 cv::Mat src; // current image, unanalyzed
 cv::Mat dst; // current image, analyzed
 
@@ -12,30 +13,19 @@ eggsizerML::eggsizerML(QWidget *parent)
     , ui(new Ui::eggsizerML)
 {
     ui->setupUi(this);
+    ui->cannySigmaSlider->setSliderPosition(33);
+    ui->sigma_val_label->setText(QString::number(ui->cannySigmaSlider->value() / 100.0f ));
+    ui->cannySigmaSlider->setDisabled(1);
 }
 
 eggsizerML::~eggsizerML()
 {
     delete ui;
 }
-// < ---------------------------------------- >
-// OpenCV Analysis
-void autoCanny(cv::Mat src, cv::Mat *dst, float sigma=0.33) {
-    std::vector<uchar> array;
-    // cv::Mat srcCopy;
-    // src->copyTo(srcCopy);
-    array.assign(src.data, src.data + src.total()*src.channels());
-    std::nth_element(array.begin(), array.begin() + 1, array.end(), std::greater{});
-    double v = array[1];
 
-    double lower = std::max(0.0, (1.0 - sigma) * v);
-    double upper = std::min(255.0, (1.0 + sigma) * v);
-    cv::Canny(src, *dst, lower, upper);
-}
-// < ---------------------------------------- >
 
 // < ---------------------------------------- >
-// BASIC IMAGE UPLOAD/PROCESSING WITH OPENCV
+// BASIC FILE/FOLDER UPLOAD/PROCESSING WITH OPENCV
 static void initializeImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMode acceptMode)
 {
     static bool firstDialog = true;
@@ -67,18 +57,14 @@ static void initializeImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMo
 // opens file dialog
 void eggsizerML::open()
 {
-    // loadFile("");
-    // return;
     QFileDialog dialog(this, tr("Select Image"));
 
     while (dialog.exec() == QDialog::Accepted && !loadFile(dialog.selectedFiles().constFirst())) {}
 }
 
-// loads file into label element
+// loads file into label element & CV mat for analysis
 bool eggsizerML::loadFile(const QString &fileName="")
 {
-    extern cv::Mat src;
-    // QString testfileName = "/Users/jax/Downloads/data/LT_Eggs/23Y6115_2.jpg";
     QImageReader reader(fileName);
     reader.setAutoTransform(true);
     const QImage newImage = reader.read();
@@ -88,34 +74,30 @@ bool eggsizerML::loadFile(const QString &fileName="")
         return false;
     }
     ui->imgDisp_1->setPixmap(QPixmap::fromImage(newImage));
-
     src = cv::imread(fileName.toStdString());
-    cv::Mat testImg;
-    autoCanny(src, &testImg);
-    ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(testImg));
+    autoCanny(src, &dst);
+    ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(dst));
+    ui->cannySigmaSlider->setDisabled(0);
     return true;
 }
 
-// button connect
+// < ---------------------------------------- >
+
+
+// < ---------------------------------------- >
+// SLOT CONNECTORS (BASICALLY CALLBACKS)
+void eggsizerML::on_cannySigmaSlider_sliderMoved(int position)
+{
+    if (!src.empty()) {
+        float newSigma = ui->cannySigmaSlider->value() / 100.0f;
+        ui->sigma_val_label->setText(QString::number(newSigma));
+        autoCanny(src, &dst, newSigma);
+        ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(dst));
+    }
+}
+
 void eggsizerML::on_fileOpen_btn_clicked()
 {
     open();
 }
 // < ---------------------------------------- >
-
-
-
-void eggsizerML::on_horizontalSlider_sliderMoved(int position)
-{
-    extern cv::Mat src;
-    if (!src.empty()) {
-        float newSigma = ui->horizontalSlider->value() / 100.0f;
-        ui->sigma_val_label->setText(QString::number(newSigma));
-        autoCanny(src, &dst, newSigma);
-        ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(dst));
-    } else {
-        std::cout << "Fuckballs" << "\n";
-    }
-
-}
-

@@ -36,7 +36,7 @@ private slots:
     bool loadFile(const QString &fileName);
     // < ---------------------------------------- >
 
-    void on_horizontalSlider_sliderMoved(int position);
+    void on_cannySigmaSlider_sliderMoved(int position);
 
 private:
     Ui::eggsizerML *ui;

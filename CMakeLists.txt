@@ -25,17 +25,19 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(OpenCV REQUIRED)
 
 set(PROJECT_SOURCES
-        main.cpp
-        eggsizerml.cpp
-        eggsizerml.h
-        eggsizerml.ui
+        src/main.cpp
+        src/eggsizerml.cpp
+        src/eggsizerml.ui
+        src/cannyDetect.cpp
+        include/eggsizerml.h
+        include/asmOpenCV.h
+        include/cannyDetect.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(eggsizerML
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        asmOpenCV.h
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET eggsizerML APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
