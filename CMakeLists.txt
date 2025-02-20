@@ -1,27 +1,28 @@
 cmake_minimum_required(VERSION 3.16)
-
 project(eggsizerML VERSION 0.1 LANGUAGES CXX)
-
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
+
 find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+include_directories(${Boost_INCLUDE_DIRS})
 
 IF(WIN32)
-	set(OpenCV_DIR "C:/tools/opencv/build")
-	set(QT_DIR "C:/6.8.2/msvc2022_64/lib/cmake/Qt6")
-	set(Qt6_DIR "C:/6.8.2/msvc2022_64/lib/cmake/Qt6")
-	set(CMAKE_CXX_COMPILER "gcc")
+    set(OpenCV_DIR "C:/tools/opencv/build")
+    set(QT_DIR "C:/Qt/6.8.2/msvc2022_64/lib/cmake/Qt6")
+    set(Qt6_DIR "C:/Qt/6.8.2/msvc2022_64/lib/cmake/Qt6")
+    set(Boost_INCLUDE_DIR "C:/local/boost_1_83_0")
+    set(BOOST_ROOT "C:/local/boost_1_83_0")
 ENDIF()
-
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(OpenCV REQUIRED)
-
 set(PROJECT_SOURCES
         main.cpp
         eggsizerml.cpp
@@ -54,11 +55,9 @@ else()
         )
     endif()
 endif()
-
 target_link_libraries(eggsizerML PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_include_directories(eggsizerML PRIVATE ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(eggsizerML PRIVATE ${OpenCV_LIBS})
-
+target_link_libraries(eggsizerML PRIVATE ${OpenCV_LIBS} Boost::unit_test_framework)
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
@@ -94,11 +93,9 @@ install(TARGETS eggsizerML
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
-
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(eggsizerML)
 endif()
-
 # runs doxygen documentation upon build (can remove if this is redundant)
 find_package(Doxygen)
 if (DOXYGEN_FOUND)
@@ -106,3 +103,16 @@ if (DOXYGEN_FOUND)
 else()
     message(STATUS "Doxygen not found. Documentation will not be generated.")
 endif()
+  7 changes: 7 additions & 0 deletions 7  
+edge_detection.cpp
+ Viewed
+
+Original file line number	Diff line number	Diff line change
+@@ -0,0 +1,7 @@
+#include "edge_detection.hpp"
+
+cv::Mat detectEdges(const cv::Mat& image, double threshold1, double threshold2)
+{
+    // Dummy implementation: just return the image for testing
+    return image;
+}
