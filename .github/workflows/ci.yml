@@ -1,82 +1,57 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-
     strategy:
-      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies (Linux)
+      - name: Install dependencies (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake libboost-test-dev libopencv-dev
+          sudo apt-get install -y cmake libboost-test-dev libopencv-dev qt6-base-dev qt6-tools-dev qt6-tools-dev-tools
+
+      - name: Install dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install cmake qt6 opencv boost
+          echo 'export CMAKE_PREFIX_PATH="$(brew --prefix qt6)"' >> ~/.bash_profile
+          source ~/.bash_profile
 
       - name: Install dependencies (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --apply-install-arguments-to-dependencies
           choco install opencv -y --install-args="'/DIR=C:\tools'"
-          choco install python
-          python -m pip install -U pip
-          python -m pip install aqtinstall
-          aqt install-qt windows desktop 6.8.2 win64_msvc2022_64 -m all
+          choco install boost-msvc-14.3 -y
+          choco install qt6-default -y
 
-      - name: Install dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install cmake qt6 opencv
-
-      - name: Build (Linux/macOS)
-        if: runner.os == 'macOS' || matrix.os == 'ubuntu-latest'
+      - name: Configure CMake
         run: |
           mkdir -p build
           cd build
-          cmake ..
-          make
+          cmake -DCMAKE_BUILD_TYPE=Release ..
 
-      - name: Setup MSBuild (Windows)
-        if: matrix.os == 'windows-latest'
-        uses: microsoft/setup-msbuild@v2
-        with:
-          msbuild-version: 17.0
-
-      - name: Build (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          set OpenCV_DIR=C:\tools\opencv\build
-          mkdir build
-          cd build
-          cmake ..
-          msbuild eggsizerML.sln /p:Configuration=Release
-
-      - name: Link DLLs (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          C:\6.8.2\msvc2022_64\bin\windeployqt.exe D:\a\eggsizerML\eggsizerML\build\Release\eggsizerML.exe
-          copy C:\tools\opencv\build\x64\vc16\bin\opencv_world4110.dll D:\a\eggsizerML\eggsizerML\build\Release\
-          move D:\a\eggsizerML\eggsizerML\build\Release\ D:\a\eggsizerML\eggsizerML\Release\
-          move D:\a\eggsizerML\eggsizerML\build\ D:\a\eggsizerML\eggsizerML\trash\
-          move D:\a\eggsizerML\eggsizerML\Release\ D:\a\eggsizerML\eggsizerML\build\
-
-      - name: Run tests
+      - name: Build
         run: |
           cd build
-          ctest --verbose
+          cmake --build . --config Release
 
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-${{ matrix.os }}
-          path: build/
-          retention-days: 7
+      - name: Run Tests
+        run: |
+          cd build
+          ctest --output-on-failure
