@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [windows-latest, macos-13, macos-14]
       
@@ -69,7 +69,7 @@ jobs:
           cmake ..
           msbuild eggsizerML.sln /p:Configuration=Release
 
-      - name: Link DLLs
+      - name: Package Windows Deps
         if: matrix.os == 'windows-latest'
         run: |
           C:\6.8.2\msvc2022_64\bin\windeployqt.exe D:\a\eggsizerML\eggsizerML\build\Release\eggsizerML.exe
@@ -77,7 +77,19 @@ jobs:
           move D:\a\eggsizerML\eggsizerML\build\Release\ D:\a\eggsizerML\eggsizerML\Release\
           move D:\a\eggsizerML\eggsizerML\build\ D:\a\eggsizerML\eggsizerML\trash\
           move D:\a\eggsizerML\eggsizerML\Release\ D:\a\eggsizerML\eggsizerML\build\
+
+      - name: Debug macOS File Paths
+        if: runner.os == 'macOS'
+        run: |
+          find /opt/homebrew/Cellar/qt -type f -name "macdeployqt"
+          find /opt/homebrew/Cellar/opencv -type f -name "*.dylib"
           
+      - name: Package macOS Deps
+        if: runner.os == 'macOS'
+        run: |
+          ls build/
+          /opt/homebrew/Cellar/qt/6.7.3/bin/macdeployqt build/eggsizerML.app -dmg -libpath=/opt/homebrew/Cellar/opencv/4.11.0/lib/
+          cp -r /opt/homebrew/Cellar/opencv/4.11.0/lib/*.dylib build/eggsizerML.app/Contents/MacOS/
           
 
       - name: Upload Build Artifacts
