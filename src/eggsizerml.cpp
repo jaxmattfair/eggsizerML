@@ -2,6 +2,7 @@
 #include "../include/ui_eggsizerml.h"
 #include "../include/asmOpenCV.h"
 #include "../include/cannyDetect.h"
+#include "../include/measureEdges.h"
 
 // GLOBAL APPLICATION DATA STORAGE
 //(keep this to a MINIMUM)
@@ -76,6 +77,8 @@ bool eggsizerML::loadFile(const QString &fileName="")
     ui->imgDisp_1->setPixmap(QPixmap::fromImage(newImage));
     src = cv::imread(fileName.toStdString());
     autoCanny(src, &dst);
+    cv::Mat newdst;
+    polyApproxFromEdges(&dst, &newdst);
     ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(dst));
     ui->cannySigmaSlider->setDisabled(0);
     return true;
