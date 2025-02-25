@@ -145,6 +145,19 @@
       <string>TextLabel</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="blobDetect_btn">
+     <property name="geometry">
+      <rect>
+       <x>340</x>
+       <y>130</y>
+       <width>100</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Detect Blobs</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

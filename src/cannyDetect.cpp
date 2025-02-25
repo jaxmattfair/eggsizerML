@@ -1,17 +1,36 @@
 #include "../include/cannyDetect.h"
+#include <opencv2/imgproc/imgproc.hpp>
+#include <algorithm>  // for std::nth_element
 
-// < ---------------------------------------- >
-// OpenCV Analysis
+double computeMedian(cv::Mat channel) {
+    std::vector<uchar> pixels;
+    pixels.assign(channel.datastart, channel.dataend);
+
+    size_t n = pixels.size() / 2;
+    std::nth_element(pixels.begin(), pixels.begin() + n, pixels.end());
+    return pixels[n];
+}
+
 void autoCanny(cv::Mat src, cv::Mat *dst, float sigma) {
-    cv::Mat blurSrc;
-    cv::GaussianBlur(src, blurSrc, cv::Size(7, 7), 0);
-    std::vector<uchar> array;
-    array.assign(blurSrc.data, blurSrc.data + blurSrc.total()*blurSrc.channels());
-    std::nth_element(array.begin(), array.begin() + 1, array.end(), std::greater{});
-    double v = array[1];
+    // Convert to grayscale if necessary
+    cv::Mat gray;
+    if (src.channels() == 3) {
+        cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);
+    } else {
+        gray = src.clone();
+    }
 
+    // Apply Gaussian Blur to reduce noise
+    cv::Mat blurred;
+    cv::GaussianBlur(gray, blurred, cv::Size(5, 5), sigma);
+
+    // Compute median of the blurred image
+    double v = computeMedian(blurred);
+
+    // Calculate threshold values
     double lower = std::max(0.0, (1.0 - sigma) * v);
     double upper = std::min(255.0, (1.0 + sigma) * v);
-    cv::Canny(blurSrc, *dst, lower, upper);
+
+    // Apply Canny edge detection
+    cv::Canny(blurred, *dst, lower, upper);
 }
-// < ---------------------------------------- >
