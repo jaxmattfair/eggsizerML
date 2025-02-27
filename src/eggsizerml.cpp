@@ -2,11 +2,13 @@
 #include "../include/ui_eggsizerml.h"
 #include "../include/asmOpenCV.h"
 #include "../include/cannyDetect.h"
+#include "../include/blobDetect.h"
 
 // GLOBAL APPLICATION DATA STORAGE
 //(keep this to a MINIMUM)
 cv::Mat src; // current image, unanalyzed
 cv::Mat dst; // current image, analyzed
+cv::Mat blobDst;
 
 eggsizerML::eggsizerML(QWidget *parent)
     : QMainWindow(parent)
@@ -16,6 +18,9 @@ eggsizerML::eggsizerML(QWidget *parent)
     ui->cannySigmaSlider->setSliderPosition(33);
     ui->sigma_val_label->setText(QString::number(ui->cannySigmaSlider->value() / 100.0f ));
     ui->cannySigmaSlider->setDisabled(1);
+
+    connect(ui->blobDetect_btn, &QPushButton::clicked, this, &eggsizerML::on_blobDetect_btn_clicked);
+
 }
 
 eggsizerML::~eggsizerML()
@@ -94,6 +99,20 @@ void eggsizerML::on_cannySigmaSlider_sliderMoved(int position)
         autoCanny(src, &dst, newSigma);
         ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(dst));
     }
+}
+
+void eggsizerML::on_blobDetect_btn_clicked()
+{
+    if (src.empty()) {
+        QMessageBox::warning(this, "Warning", "Please open an image first!");
+        return;
+    }
+
+    // blob detection
+    detectBlobs(src, blobDst);
+
+    // display result
+    ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(blobDst));
 }
 
 void eggsizerML::on_fileOpen_btn_clicked()
