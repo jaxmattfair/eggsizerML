@@ -1,6 +1,6 @@
 #include "../include/blobDetect.h"
 
-void detectBlobs(const cv::Mat &src, cv::Mat &dst) {
+std::vector<double> detectBlobs(const cv::Mat &src, cv::Mat &dst, float pixToMM) {
     // Convert to grayscale if necessary
     cv::Mat gray;
     if (src.channels() == 3) {
@@ -28,4 +28,12 @@ void detectBlobs(const cv::Mat &src, cv::Mat &dst) {
     // Draw detected blobs
     dst = src.clone();
     cv::drawKeypoints(src, keypoints, dst, cv::Scalar(0, 0, 255), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+
+    // return vector of blob areas
+    std::vector<double> blob_areas;
+    for (const auto &keypoint : keypoints) {
+        blob_areas.push_back((keypoint.size * keypoint.size * 3.14) / (4 * pixToMM));
+    }
+
+    return blob_areas;
 }

@@ -36,10 +36,6 @@ private slots:
     bool loadFile(const QString &fileName);
     // < ---------------------------------------- >
 
-    void on_cannySigmaSlider_sliderMoved(int position);
-    void on_blobDetect_btn_clicked();
-
-
 private:
     Ui::eggsizerML *ui;
 };
