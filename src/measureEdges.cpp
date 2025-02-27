@@ -1,9 +1,9 @@
 #include "../include/measureEdges.h"
 
-void polyApproxFromEdges(cv::Mat* src, cv::Mat* dst, cv::Mat* orig) {
-    // copy orig to dst to display contours on copy
-    // of original image
+std::vector<double> polyApproxFromEdges(cv::Mat* src, cv::Mat* dst, cv::Mat* orig, float pixToMM) {
+    // set up output mat + array
     *dst = orig->clone();
+    std::vector<double> egg_areas;
 
     // contour pre-processed image
     std::vector<std::vector<cv::Point>> contours;
@@ -21,7 +21,9 @@ void polyApproxFromEdges(cv::Mat* src, cv::Mat* dst, cv::Mat* orig) {
             drawContours(*dst, std::vector<std::vector<cv::Point>>{approx}, 0, cv::Scalar(0, 150, 0), 2);
 
             // calculate the area of the poly-dp approximated contour
-            // egg_areas.push_back(contourArea(approx));
+            egg_areas.push_back(contourArea(approx) / pixToMM);
         }
     }
+
+    return egg_areas;
 }

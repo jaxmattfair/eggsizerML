@@ -3,6 +3,6 @@
 
 #include <opencv2/opencv.hpp>
 
-void detectBlobs(const cv::Mat &src, cv::Mat &dst);
+std::vector<double> detectBlobs(const cv::Mat &src, cv::Mat &dst, float pixToMM=100);
 
 #endif // BLOBDETECT_H
