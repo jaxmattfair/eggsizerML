@@ -12,8 +12,8 @@ void detectBlobs(const cv::Mat &src, cv::Mat &dst) {
     // Set up SimpleBlobDetector parameters
     cv::SimpleBlobDetector::Params params;
     params.filterByArea = true;
-    params.minArea = 50;
-    params.maxArea = 5000;
+    params.minArea = 5000;
+    params.maxArea = 500000;
     params.filterByCircularity = false;
     params.filterByConvexity = false;
     params.filterByInertia = false;
