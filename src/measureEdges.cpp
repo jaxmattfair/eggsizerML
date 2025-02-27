@@ -1,8 +1,9 @@
 #include "../include/measureEdges.h"
 
-void polyApproxFromEdges(cv::Mat* src, cv::Mat* dst) {
-    // copy over src for comparison
-    *dst = *src;
+void polyApproxFromEdges(cv::Mat* src, cv::Mat* dst, cv::Mat* orig) {
+    // copy orig to dst to display contours on copy
+    // of original image
+    *dst = orig->clone();
 
     // contour pre-processed image
     std::vector<std::vector<cv::Point>> contours;
@@ -17,11 +18,10 @@ void polyApproxFromEdges(cv::Mat* src, cv::Mat* dst) {
         // if the contour is a closed shape
         if (contourArea(contours[i]) >= 18000 && contourArea(contours[i]) <= 700000) {
             // draw the contour
-            drawContours(*dst, std::vector<std::vector<cv::Point>>{approx}, 0, cv::Scalar(255, 0, 0), 2);
+            drawContours(*dst, std::vector<std::vector<cv::Point>>{approx}, 0, cv::Scalar(0, 150, 0), 2);
 
             // calculate the area of the poly-dp approximated contour
             // egg_areas.push_back(contourArea(approx));
         }
     }
-    imshow("Poly-Approx Image", *dst);
 }

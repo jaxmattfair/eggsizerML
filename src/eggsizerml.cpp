@@ -7,21 +7,16 @@
 
 // GLOBAL APPLICATION DATA STORAGE
 //(keep this to a MINIMUM)
-cv::Mat src; // current image, unanalyzed
-cv::Mat dst; // current image, analyzed
-cv::Mat blobDst;
+cv::Mat orig; // original image
+cv::Mat cannyDst; // canny-detected image
+cv::Mat polyDst; // polygonally-approximated image
+cv::Mat blobDst; // blob-detected image
 
 eggsizerML::eggsizerML(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::eggsizerML)
 {
     ui->setupUi(this);
-    ui->cannySigmaSlider->setSliderPosition(33);
-    ui->sigma_val_label->setText(QString::number(ui->cannySigmaSlider->value() / 100.0f ));
-    ui->cannySigmaSlider->setDisabled(1);
-
-    connect(ui->blobDetect_btn, &QPushButton::clicked, this, &eggsizerML::on_blobDetect_btn_clicked);
-
 }
 
 eggsizerML::~eggsizerML()
@@ -71,21 +66,32 @@ void eggsizerML::open()
 // loads file into label element & CV mat for analysis
 bool eggsizerML::loadFile(const QString &fileName="")
 {
+    // validate file and read in
     QImageReader reader(fileName);
     reader.setAutoTransform(true);
-    const QImage newImage = reader.read();
-    if (newImage.isNull()) {
+    const QImage originalImage = reader.read();
+    if (originalImage.isNull()) {
         QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
                                  tr("Cannot load %1, %2").arg(QDir::toNativeSeparators(fileName), reader.errorString()));
         return false;
     }
-    ui->imgDisp_1->setPixmap(QPixmap::fromImage(newImage));
-    src = cv::imread(fileName.toStdString());
-    autoCanny(src, &dst);
-    cv::Mat newdst;
-    polyApproxFromEdges(&dst, &newdst);
-    ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(dst));
-    ui->cannySigmaSlider->setDisabled(0);
+
+    // display input image
+    ui->imgDisp_ul->setPixmap(QPixmap::fromImage(originalImage));
+
+    // Otsu's threshold and display
+    orig = cv::imread(fileName.toStdString());
+    autoCanny(&orig, &cannyDst);
+    ui->imgDisp_ll->setPixmap(ASM::cvMatToQPixmap(cannyDst));
+
+    // polygonally approximate and display
+    polyApproxFromEdges(&cannyDst, &polyDst, &orig);
+    ui->imgDisp_lr->setPixmap(ASM::cvMatToQPixmap(polyDst));
+
+    // blob detect and display
+    detectBlobs(orig, blobDst);
+    ui->imgDisp_ur->setPixmap(ASM::cvMatToQPixmap(blobDst));
+
     return true;
 }
 
@@ -94,30 +100,6 @@ bool eggsizerML::loadFile(const QString &fileName="")
 
 // < ---------------------------------------- >
 // SLOT CONNECTORS (BASICALLY CALLBACKS)
-void eggsizerML::on_cannySigmaSlider_sliderMoved(int position)
-{
-    if (!src.empty()) {
-        float newSigma = ui->cannySigmaSlider->value() / 100.0f;
-        ui->sigma_val_label->setText(QString::number(newSigma));
-        autoCanny(src, &dst, newSigma);
-        ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(dst));
-    }
-}
-
-void eggsizerML::on_blobDetect_btn_clicked()
-{
-    if (src.empty()) {
-        QMessageBox::warning(this, "Warning", "Please open an image first!");
-        return;
-    }
-
-    // blob detection
-    detectBlobs(src, blobDst);
-
-    // display result
-    ui->imgDisp_2->setPixmap(ASM::cvMatToQPixmap(blobDst));
-}
-
 void eggsizerML::on_fileOpen_btn_clicked()
 {
     open();
