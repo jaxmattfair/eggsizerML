@@ -81,7 +81,7 @@ jobs:
       - name: Package macOS 13 Deps
         if: matrix.os == 'macos-13'
         run: |
-          cp /usr/local/Cellar/opencv/4.11.0/lib/*.dylib build/eggsizerML.app/Contents/MacOS/
+          cp /usr/local/Cellar/opencv/4.11.0_1/lib/*.dylib build/eggsizerML.app/Contents/MacOS/
           cd build
           /usr/local/Cellar/qt/6.8.2/bin/macdeployqt eggsizerML.app
           
