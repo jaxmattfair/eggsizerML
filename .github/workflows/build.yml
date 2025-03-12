@@ -85,14 +85,14 @@ jobs:
           find /opt/homebrew/Cellar/opencv -type f -name "*.dylib"
           
       - name: Package macOS 13 Deps
-        if: matrix.os == "macos-13"
+        if: matrix.os == 'macos-13'
         run: |
           cp -r /usr/local/Cellar/opencv/4.11.0/lib/*.dylib build/eggsizerML.app/Contents/MacOS/
           cd build
           /usr/local/Cellar/qt/6.8.2/bin/macdeployqt eggsizerML.app
           
       - name: Package macOS 14 Deps
-        if: matrix.os == "macos-14"
+        if: matrix.os == 'macos-14'
         run: |
           cp -r /opt/homebrew/Cellar/opencv/4.11.0_1/lib/*.dylib build/eggsizerML.app/Contents/MacOS/
           cd build
