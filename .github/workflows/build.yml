@@ -78,23 +78,17 @@ jobs:
           move D:\a\eggsizerML\eggsizerML\build\ D:\a\eggsizerML\eggsizerML\trash\
           move D:\a\eggsizerML\eggsizerML\Release\ D:\a\eggsizerML\eggsizerML\build\
 
-      - name: Debug macOS File Paths
-        if: runner.os == 'macOS'
-        run: |
-          find /opt/homebrew/Cellar/qt -type f -name "macdeployqt"
-          find /opt/homebrew/Cellar/opencv -type f -name "*.dylib"
-          
       - name: Package macOS 13 Deps
         if: matrix.os == 'macos-13'
         run: |
-          cp -r /usr/local/Cellar/opencv/4.11.0/lib/*.dylib build/eggsizerML.app/Contents/MacOS/
+          cp /usr/local/Cellar/opencv/4.11.0/lib/*.dylib build/eggsizerML.app/Contents/MacOS/
           cd build
           /usr/local/Cellar/qt/6.8.2/bin/macdeployqt eggsizerML.app
           
       - name: Package macOS 14 Deps
         if: matrix.os == 'macos-14'
         run: |
-          cp -r /opt/homebrew/Cellar/opencv/4.11.0_1/lib/*.dylib build/eggsizerML.app/Contents/MacOS/
+          cp /opt/homebrew/Cellar/opencv/4.11.0_1/lib/*.dylib build/eggsizerML.app/Contents/MacOS/
           cd build
           /opt/homebrew/Cellar/qt/6.8.2/bin/macdeployqt eggsizerML.app
           
