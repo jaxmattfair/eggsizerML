@@ -226,6 +226,32 @@
       </item>
      </layout>
     </widget>
+    <widget class="QPushButton" name="previousImageButton">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>50</y>
+       <width>111</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Previous Image</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="nextImageButton">
+     <property name="geometry">
+      <rect>
+       <x>370</x>
+       <y>50</y>
+       <width>111</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Next Image</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
