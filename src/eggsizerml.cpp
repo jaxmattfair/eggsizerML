@@ -17,6 +17,9 @@ eggsizerML::eggsizerML(QWidget *parent)
     , ui(new Ui::eggsizerML)
 {
     ui->setupUi(this);
+
+    connect(ui->nextImageButton, &QPushButton::clicked, this, &eggsizerML::showNextImage);
+    connect(ui->previousImageButton, &QPushButton::clicked, this, &eggsizerML::showPreviousImage);
 }
 
 eggsizerML::~eggsizerML()
@@ -58,13 +61,28 @@ static void initializeImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMo
 // opens file dialog
 void eggsizerML::open()
 {
-    QFileDialog dialog(this, tr("Select Image"));
+    QFileDialog dialog(this, tr("Select Images"));
+    dialog.setFileMode(QFileDialog::ExistingFiles);
+    if (dialog.exec() == QDialog::Accepted) {
+        imageFiles = dialog.selectedFiles();
+        if (!imageFiles.isEmpty()) {
+            currentImageIndex = 0;
+            loadImageAtIndex(currentImageIndex); // Load the first image
+        }
+    }
 
-    while (dialog.exec() == QDialog::Accepted && !loadFile(dialog.selectedFiles().constFirst())) {}
+}
+
+void eggsizerML::loadImageAtIndex(int index)
+{
+    if (index < 0 || index >= imageFiles.size()) return;
+
+    currentImageIndex = index;
+    loadFile(imageFiles[index]); // Load the selected image
 }
 
 // loads file into label element & CV mat for analysis
-bool eggsizerML::loadFile(const QString &fileName="")
+bool eggsizerML::loadFile(const QString &fileName)
 {
     // validate file and read in
     QImageReader reader(fileName);
@@ -114,6 +132,20 @@ bool eggsizerML::loadFile(const QString &fileName="")
     }
 
     return true;
+}
+
+void eggsizerML::showNextImage()
+{
+    if (currentImageIndex < imageFiles.size() - 1) {
+        loadImageAtIndex(++currentImageIndex);
+    }
+}
+
+void eggsizerML::showPreviousImage()
+{
+    if (currentImageIndex > 0) {
+        loadImageAtIndex(--currentImageIndex);
+    }
 }
 
 // < ---------------------------------------- >

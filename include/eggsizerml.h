@@ -34,9 +34,15 @@ private slots:
     void open();
     void on_fileOpen_btn_clicked();
     bool loadFile(const QString &fileName);
+    void showNextImage();
+    void showPreviousImage();
     // < ---------------------------------------- >
 
 private:
     Ui::eggsizerML *ui;
+    QStringList imageFiles;  // Store selected image paths
+    int currentImageIndex = 0; // Track which image is displayed
+
+    void loadImageAtIndex(int index);
 };
 #endif // EGGSIZERML_H
