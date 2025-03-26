@@ -38,6 +38,9 @@
      <property name="text">
       <string>Open File</string>
      </property>
+     <property name="flat">
+      <bool>false</bool>
+     </property>
     </widget>
     <widget class="QWidget" name="horizontalLayoutWidget_3">
      <property name="geometry">
@@ -250,6 +253,19 @@
      </property>
      <property name="text">
       <string>Next Image</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="folderOpen_btn">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>40</y>
+       <width>100</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Open Folder</string>
      </property>
     </widget>
    </widget>
