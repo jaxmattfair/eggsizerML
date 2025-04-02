@@ -84,13 +84,13 @@ jobs:
         if: matrix.os == 'macos-13'
         run: |
           cd build
-          # /usr/local/Cellar/qt/6.8.2/bin/macdeployqt eggsizerML.app -dmg -no-strip
+          /usr/local/Cellar/qt/6.8.2/bin/macdeployqt eggsizerML.app -dmg -no-strip -appstore-compliant -executable=eggsizerML.app/Contents/MacOS/eggsizerML
           
       - name: Package macOS 14 Deps
         if: matrix.os == 'macos-14'
         run: |
           cd build
-          # /opt/homebrew/Cellar/qt/6.8.2/bin/macdeployqt eggsizerML.app -dmg -no-strip
+          /opt/homebrew/Cellar/qt/6.8.2/bin/macdeployqt eggsizerML.app -dmg -no-strip -appstore-compliant -executable=eggsizerML.app/Contents/MacOS/eggsizerML
           
 
       - name: Upload Build Artifacts
