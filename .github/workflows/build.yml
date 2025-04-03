@@ -79,8 +79,11 @@ jobs:
           move D:\a\eggsizerML\eggsizerML\build\Release\ D:\a\eggsizerML\eggsizerML\Release\
           move D:\a\eggsizerML\eggsizerML\build\ D:\a\eggsizerML\eggsizerML\trash\
           move D:\a\eggsizerML\eggsizerML\Release\ D:\a\eggsizerML\eggsizerML\build\
-          cd  D:\a\eggsizerML\eggsizerML\build\
-          make package
+          cd D:\a\eggsizerML\eggsizerML\build\
+
+          ls
+          
+          cpack
 
       - name: Package macOS 13 Deps
         if: matrix.os == 'macos-13'
