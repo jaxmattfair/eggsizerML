@@ -80,7 +80,7 @@ jobs:
           move D:\a\eggsizerML\eggsizerML\build\ D:\a\eggsizerML\eggsizerML\trash\
           move D:\a\eggsizerML\eggsizerML\Release\ D:\a\eggsizerML\eggsizerML\build\
           cd  D:\a\eggsizerML\eggsizerML\build\
-          cpack -G WIX -C Release -P EggsizerML
+          make package
 
       - name: Package macOS 13 Deps
         if: matrix.os == 'macos-13'
