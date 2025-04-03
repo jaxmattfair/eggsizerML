@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-13, macos-14]
+        os: [windows-latest]
       
     steps:
       - name: Checkout
@@ -79,6 +79,7 @@ jobs:
           move D:\a\eggsizerML\eggsizerML\build\Release\ D:\a\eggsizerML\eggsizerML\Release\
           move D:\a\eggsizerML\eggsizerML\build\ D:\a\eggsizerML\eggsizerML\trash\
           move D:\a\eggsizerML\eggsizerML\Release\ D:\a\eggsizerML\eggsizerML\build\
+          cpack -G WIX -C Release
 
       - name: Package macOS 13 Deps
         if: matrix.os == 'macos-13'

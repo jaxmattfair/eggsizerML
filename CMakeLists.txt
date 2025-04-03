@@ -89,3 +89,6 @@ if (DOXYGEN_FOUND)
 else()
     message(STATUS "Doxygen not found. Documentation will not be generated.")
 endif()
+
+set(CPACK_GENERATOR WIX)
+include(CPack)
