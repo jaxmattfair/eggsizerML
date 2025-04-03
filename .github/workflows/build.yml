@@ -13,11 +13,14 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest, macos-13, macos-14]
+        os: [windows-latest]
       
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
       - name: Linux Dependencies
         if: matrix.os == 'ubuntu-latest'
@@ -32,7 +35,6 @@ jobs:
           cd C:\
           choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --apply-install-arguments-to-dependencies
           choco install opencv -y --install-args="'/DIR=C:\tools'"
-          choco install python
           python -m pip install -U pip
           python -m pip install aqtinstall
           aqt install-qt windows desktop 6.8.2 win64_msvc2022_64 -m all
@@ -68,7 +70,7 @@ jobs:
           cmake ..
           msbuild eggsizerML.sln /p:Configuration=Release
 
-      - name: Link DLLs
+      - name: Package Windows Deps
         if: matrix.os == 'windows-latest'
         run: |
           C:\6.8.2\msvc2022_64\bin\windeployqt.exe D:\a\eggsizerML\eggsizerML\build\Release\eggsizerML.exe
@@ -76,7 +78,23 @@ jobs:
           move D:\a\eggsizerML\eggsizerML\build\Release\ D:\a\eggsizerML\eggsizerML\Release\
           move D:\a\eggsizerML\eggsizerML\build\ D:\a\eggsizerML\eggsizerML\trash\
           move D:\a\eggsizerML\eggsizerML\Release\ D:\a\eggsizerML\eggsizerML\build\
+          cd D:\a\eggsizerML\eggsizerML\build\
+
+          ls
           
+          # cpack --config ../CPackConfig.cmake
+
+      - name: Package macOS 13 Deps
+        if: matrix.os == 'macos-13'
+        run: |
+          cd build
+          /usr/local/Cellar/qt/6.8.2_1/bin/macdeployqt eggsizerML.app -dmg -no-strip -appstore-compliant -executable=eggsizerML.app/Contents/MacOS/eggsizerML
+          
+      - name: Package macOS 14 Deps
+        if: matrix.os == 'macos-14'
+        run: |
+          cd build
+          /opt/homebrew/Cellar/qt/6.8.2_1/bin/macdeployqt eggsizerML.app -dmg -no-strip -appstore-compliant -executable=eggsizerML.app/Contents/MacOS/eggsizerML
           
 
       - name: Upload Build Artifacts
