@@ -1,0 +1,22 @@
+# .github/workflows/release.yml
+name: Release
+
+on:
+  pull_request:
+    types: [opened]
+    title:
+      - '.*<<!nav>>:bookmark:<<!/nav>>.*' # filter for releases
+      
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    if: github.event.pull_request.merged
+    
+    steps:
+      - name: Tag
+        uses: K-Phoen/semver-release-action@master
+        with:
+          release_branch: master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
