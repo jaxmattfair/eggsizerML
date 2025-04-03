@@ -83,7 +83,7 @@ jobs:
 
           ls
           
-          cpack
+          cpack --config ../CPackConfig.cmake
 
       - name: Package macOS 13 Deps
         if: matrix.os == 'macos-13'
