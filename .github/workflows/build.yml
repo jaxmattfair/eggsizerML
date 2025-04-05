@@ -32,7 +32,7 @@ jobs:
           cd C:\
           choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --apply-install-arguments-to-dependencies
           choco install opencv -y --install-args="'/DIR=C:\tools'"
-          choco install python --version=3.10
+          choco install python
           python -m pip install -U pip
           python -m pip install aqtinstall
           aqt install-qt windows desktop 6.8.2 win64_msvc2022_64 -m all
