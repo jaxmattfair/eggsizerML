@@ -2,6 +2,7 @@
 #define EGGSIZERML_H
 
 // Qt Native Stuff
+#include <QDir>
 #include <QFileDialog>
 #include <QImageReader>
 #include <QImageWriter>
@@ -14,10 +15,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-QT_BEGIN_NAMESPACE
-namespace Ui {
-class eggsizerML;
-}
+QT_BEGIN_NAMESPACE namespace Ui { class eggsizerML; }
 QT_END_NAMESPACE
 
 class eggsizerML : public QMainWindow {
@@ -43,9 +41,10 @@ private slots:
                     const std::vector<double> &blobAreas,
                     const std::vector<double> &certainties, int outputFormat,
                     int emitImage);
-  // < ---------------------------------------- >
-
   void on_saveResults_btn_clicked();
+  void on_folderOpen_btn_clicked();
+  void openFolder();
+  // < ---------------------------------------- >
 
 private:
   Ui::eggsizerML *ui;

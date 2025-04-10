@@ -16,11 +16,26 @@ cv::Mat blobDst;  // blob-detected image
 eggsizerML::eggsizerML(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::eggsizerML) {
   ui->setupUi(this);
+  int fixedImageWidth = 400; // Adjust to match your design
+
+  ui->imgDisp_ul->setMinimumWidth(fixedImageWidth);
+  ui->imgDisp_ul->setMaximumWidth(fixedImageWidth);
+
+  ui->imgDisp_ur->setMinimumWidth(fixedImageWidth);
+  ui->imgDisp_ur->setMaximumWidth(fixedImageWidth);
+
+  ui->imgDisp_ll->setMinimumWidth(fixedImageWidth);
+  ui->imgDisp_ll->setMaximumWidth(fixedImageWidth);
+
+  ui->imgDisp_lr->setMinimumWidth(fixedImageWidth);
+  ui->imgDisp_lr->setMaximumWidth(fixedImageWidth);
 
   connect(ui->nextImageButton, &QPushButton::clicked, this,
           &eggsizerML::showNextImage);
   connect(ui->previousImageButton, &QPushButton::clicked, this,
           &eggsizerML::showPreviousImage);
+  connect(ui->folderOpen_btn, &QPushButton::clicked, this,
+          &eggsizerML::openFolder);
 }
 
 eggsizerML::~eggsizerML() { delete ui; }
@@ -60,14 +75,59 @@ static void initializeImageFileDialog(QFileDialog &dialog,
 
 // opens file dialog
 void eggsizerML::open() {
-  QFileDialog dialog(this, tr("Select Images"));
+  QFileDialog dialog(this, tr("Select Images or Folder"));
   dialog.setFileMode(QFileDialog::ExistingFiles);
+  dialog.setOption(QFileDialog::ShowDirsOnly, false);
+
   if (dialog.exec() == QDialog::Accepted) {
-    imageFiles = dialog.selectedFiles();
+    QString selectedPath = dialog.selectedFiles().first();
+
+    QFileInfo fileInfo(selectedPath);
+    if (fileInfo.isDir()) {
+      QDir directory(selectedPath);
+      QStringList filters;
+      filters << "*.jpg" << "*.png" << "*.bmp" << "*.tiff";
+      imageFiles = directory.entryList(filters, QDir::Files);
+
+      for (int i = 0; i < imageFiles.size(); i++) {
+        imageFiles[i] = directory.absoluteFilePath(imageFiles[i]);
+      }
+    } else {
+      imageFiles = dialog.selectedFiles();
+    }
+
     if (!imageFiles.isEmpty()) {
       currentImageIndex = 0;
-      loadImageAtIndex(currentImageIndex); // Load the first image
+      loadImageAtIndex(currentImageIndex);
     }
+  }
+}
+
+void eggsizerML::openFolder() {
+  qDebug() << "openFolder() called";
+
+  QString selectedFolder = QFileDialog::getExistingDirectory(
+      this, tr("Select a Folder"), QDir::homePath());
+
+  if (selectedFolder.isEmpty()) {
+    qDebug() << "No folder selected.";
+    return;
+  }
+
+  qDebug() << "Selected Folder: " << selectedFolder;
+
+  QDir directory(selectedFolder);
+  QStringList filters;
+  filters << "*.jpg" << "*.png" << "*.bmp" << "*.tiff";
+  imageFiles = directory.entryList(filters, QDir::Files);
+
+  for (int i = 0; i < imageFiles.size(); i++) {
+    imageFiles[i] = directory.absoluteFilePath(imageFiles[i]);
+  }
+
+  if (!imageFiles.isEmpty()) {
+    currentImageIndex = 0;
+    loadImageAtIndex(currentImageIndex);
   }
 }
 
@@ -272,6 +332,7 @@ void eggsizerML::showPreviousImage() {
 // < ---------------------------------------- >
 // SLOT CONNECTORS (BASICALLY CALLBACKS)
 void eggsizerML::on_fileOpen_btn_clicked() { open(); }
+void eggsizerML::on_folderOpen_btn_clicked() {}
 // < ---------------------------------------- >
 
 void eggsizerML::on_saveResults_btn_clicked() {
