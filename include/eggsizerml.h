@@ -8,6 +8,7 @@
 #include <QImageReader>
 #include <QImageWriter>
 #include <QMessageBox>
+#include <QDir>
 
 // OpenCV2 Inclusions
 #include <opencv2/core/core.hpp>
@@ -33,9 +34,11 @@ private slots:
     // BASIC IMAGE UPLOAD/PROCESSING WITH OPENCV
     void open();
     void on_fileOpen_btn_clicked();
+    void on_folderOpen_btn_clicked();
     bool loadFile(const QString &fileName);
     void showNextImage();
     void showPreviousImage();
+    void openFolder();
     // < ---------------------------------------- >
 
 private:
