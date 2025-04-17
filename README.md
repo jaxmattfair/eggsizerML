@@ -1,7 +1,10 @@
+![Build Status](https://github.com/jaxmattfair/eggsizerML/actions/workflows/build.yml/badge.svg?branch=release)
+[![Latest Version](https://badge.fury.io/gh/jaxmattfair%2FeggsizerML.svg)](https://badge.fury.io/gh/jaxmattfair%2FeggsizerML)
+
 # Eggsizer: Automated Fish Egg Measurement
 
 ## Table of Contents
-
+- [Releases](#releases)
 - [Introduction](#introduction)
 - [Features](#features)
 - [Usage](#usage)
@@ -12,6 +15,10 @@
 - [Project Structure](#project-structure)
 - [Project Components](#project-components)
 - [License](#license)
+
+## Releases:
+
+Releases follow Semantic Versioning (SemVer), and the latest release can be found on the [Releases Page](https://github.com/jaxmattfair/eggsizerML/releases/latest)
 
 ## Introduction:
 
@@ -50,7 +57,7 @@ Project development follows a simple Git branching model:
 - `develop` is the main development branch where all features and bug fixes are integrated. This branch is regularly synced with `main` by the core development team.
 - `main` is the stable branch that contains the latest release of the project. Stable user-facing releases should always come from this branch.
 - Feature branches are created from `develop` for each new feature or bug fix, and each feature/bug fix should have a related issue on the repository with relevant tags and descriptions, linked to the project board.
-- Branch naming convention is to retain the Github-generated branch name (including the issue number) pre-pended with an emoji as dictated by [Danny Fritz's Emoji Guide](https://github.com/dannyfritz/commit-message-emoji). Common ones include:
+- Branch naming convention is to retain the Github-generated branch name (including the issue number) pre-pended with an emoji as dictated by [Carlos Cuesta's Emoji Guide](https://gitmoji.dev/). Common ones include:
   - 🐛 (:bug:) for bug fixes
   - ✨ (:sparkles:) for new features
   - 👷 (:construction_worker:) for build and pipeline adjustments
