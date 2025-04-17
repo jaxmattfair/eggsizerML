@@ -37,9 +37,6 @@ Eggsizer is an open-source software project that automates measurement of fish e
 - **CLI and GUI**: The application provides both a command-line interface (CLI) and a graphical user interface (GUI) to allow users to tailor their usage to the format most conducive to their workflow.
 - **Batch Processing**: The application supports bulk-image processing that allows users to select large datasets of images to analyze in a single run with low-latency.
 
-## Usage:
-
-STILL NEED TO FILL THIS IN.
 
 ## Development and Contribution Guidelines:
 
