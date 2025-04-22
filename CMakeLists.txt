@@ -36,11 +36,23 @@ set(PROJECT_SOURCES
         include/measureEdges.h
 )
 
+enable_testing()
+find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(eggsizerML
         MANUAL_FINALIZATION
-        ${PROJECT_SOURCES}  
+        ${PROJECT_SOURCES}
+        src/measurement.cpp
+        include/measurement.hpp
     )
+
+add_executable(accuracy_test tests/accuracy_test.cpp src/measurement.cpp src/blobDetect.cpp)
+target_include_directories(accuracy_test PRIVATE ${OpenCV_INCLUDE_DIRS} include)
+target_link_libraries(accuracy_test PRIVATE ${OpenCV_LIBS} Boost::unit_test_framework)
+
+add_test(NAME AccuracyTest COMMAND accuracy_test)
+
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET eggsizerML APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
 #                 ${CMAKE_CURRENT_SOURCE_DIR}/android)

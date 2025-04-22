@@ -162,36 +162,45 @@ bool eggsizerML::loadFile(const QString &fileName) {
   ui->imgDisp_ll->setPixmap(ASM::cvMatToQPixmap(cannyDst));
 
   // polygonally approximate and display
-  std::vector<double> otsus_areas =
-      polyApproxFromEdges(&cannyDst, &polyDst, &orig);
+  EdgeMeasureResults edgeResults = polyApproxFromEdges(&cannyDst, &polyDst, &orig);
+  std::vector<double> otsus_areas = edgeResults.areas;
   ui->imgDisp_lr->setPixmap(ASM::cvMatToQPixmap(polyDst));
 
   ui->tableWidget->resizeColumnsToContents();
   ui->tableWidget->resizeRowsToContents();
 
   // blob detect and display
-  std::vector<double> blob_areas = detectBlobs(orig, blobDst);
+  std::vector<double> blob_areas, blob_widths;
+  BlobResults blobResults = detectBlobs(orig, blobDst);
+  blob_areas = blobResults.areas;
+  blob_widths = blobResults.widths;
   ui->imgDisp_ur->setPixmap(ASM::cvMatToQPixmap(blobDst));
 
   // display all areas to table (first column egg no, second otsus area, third
   // blob area)
-  int numRows = std::max(otsus_areas.size(), blob_areas.size());
+  int numRows = std::max({otsus_areas.size(), blob_areas.size(), blob_widths.size()});
   ui->tableWidget->setRowCount(numRows);
   for (int i = 0; i < numRows; i++) {
-    QTableWidgetItem *item1 = new QTableWidgetItem(QString::number(i + 1));
-    ui->tableWidget->setItem(i, 0, item1);
+      QTableWidgetItem *item1 = new QTableWidgetItem(QString::number(i + 1));
+      ui->tableWidget->setItem(i, 0, item1);
 
-    if (i < otsus_areas.size()) {
-      QTableWidgetItem *item2 =
-          new QTableWidgetItem(QString::number(otsus_areas[i]));
-      ui->tableWidget->setItem(i, 1, item2);
-    }
+      if (i < otsus_areas.size()) {
+          QTableWidgetItem *item2 =
+              new QTableWidgetItem(QString::number(otsus_areas[i]));
+          ui->tableWidget->setItem(i, 1, item2);
+      }
 
-    if (i < blob_areas.size()) {
-      QTableWidgetItem *item3 =
-          new QTableWidgetItem(QString::number(blob_areas[i]));
-      ui->tableWidget->setItem(i, 2, item3);
-    }
+      if (i < blob_areas.size()) {
+          QTableWidgetItem *item3 =
+              new QTableWidgetItem(QString::number(blob_areas[i]));
+          ui->tableWidget->setItem(i, 2, item3);
+      }
+
+      if (i < blob_widths.size()) {
+          QTableWidgetItem *item4 =
+              new QTableWidgetItem(QString::number(blob_widths[i], 'f', 2));
+          ui->tableWidget->setItem(i, 3, item4);
+      }
   }
 
   return true;
@@ -366,9 +375,10 @@ void eggsizerML::on_saveResults_btn_clicked() {
     blobDst.release();
 
     autoCanny(&orig, &cannyDst);
-    std::vector<double> otsus_areas =
-        polyApproxFromEdges(&cannyDst, &polyDst, &orig);
-    std::vector<double> blob_areas = detectBlobs(orig, blobDst);
+    EdgeMeasureResults edgeResults = polyApproxFromEdges(&cannyDst, &polyDst, &orig);
+    std::vector<double> otsus_areas = edgeResults.areas;
+    BlobResults blobResults = detectBlobs(orig, blobDst);
+    std::vector<double> blob_areas = blobResults.areas;
     int longer_areas = std::max(otsus_areas.size(), blob_areas.size());
 
     // Store results

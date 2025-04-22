@@ -1,0 +1,340 @@
+cisco,2018202001-3,1.8
+cisco,2018202003-1,1.9395
+cisco,2018202006-1,1.8105
+cisco,2018202006-2,1.758
+cisco,2018202007-1,1.746
+cisco,2018202008-3,1.4295
+cisco,2018202009-16,1.7355
+cisco,2018202009-17,1.7295
+cisco,2018202009-18,1.7145
+cisco,2018202011-10,1.968
+cisco,2018202011-18,1.65
+cisco,2018202011-25,1.6605
+cisco,2018202011-26,1.7160255
+cisco,2018202011-3,1.7835
+cisco,2018202205-1,1.6725
+cisco,2018202205-10,1.7775
+cisco,2018202205-11,1.6875
+cisco,2018202205-12,1.779
+cisco,2018202205-13,2.0145
+cisco,2018202205-14,1.623
+cisco,2018202205-15,1.6275
+cisco,2018202205-16,1.7925
+cisco,2018202205-17,1.899
+cisco,2018202205-19,1.9260115
+cisco,2018202205-2,1.590014
+cisco,2018202205-20,1.9110125
+cisco,2018202205-21,1.8735
+cisco,2018202205-22,1.7205
+cisco,2018202205-23,1.737
+cisco,2018202205-24,1.704
+cisco,2018202205-25,1.822512
+cisco,2018202205-27,1.7385
+cisco,2018202205-28,1.8495
+cisco,2018202205-29,1.752
+cisco,2018202205-3,1.8180135
+cisco,2018202205-37,1.83
+cisco,2018202205-4,1.7745
+cisco,2018202205-6,1.638
+cisco,2018202205-7,1.6155
+cisco,2018202205-8,1.548
+cisco,2018202205-9,1.7145
+cisco,2018202206-1,1.7955125
+cisco,2018202207-3,1.758
+cisco,2018202207-5,1.878
+cisco,2018202209-46,2.0115
+cisco,2018202209-50,1.6425
+cisco,2018202209-51,1.8795
+cisco,2018202209-53,1.7985
+cisco,2018202209-55,1.848
+cisco,2018202209-56,1.7265
+cisco,2018202213-17,1.815
+cisco,2018202214-5,1.776
+cisco,2018202215-21,1.8705
+lake trout,23Y6112_1,5.4992
+lake trout,23Y6112_2,5.2537
+lake trout,23Y6115_1,5.0851
+lake trout,23Y6115_2,5.0083
+lake trout,23Y6119_1,4.9091
+lake trout,23Y6119_2,4.8074
+lake trout,23Y6121_1,4.919
+lake trout,23Y6130_1,5.5959
+lake trout,23Y6130_2,5.3107
+lake trout,23Y6133_1,4.9091
+lake trout,23Y6133_2,4.7257
+lake trout,23Y6136_1,5.4669
+lake trout,23Y6136_2,5.3851
+lake trout,23Y6137_1,5.5661
+lake trout,23Y6137_2,5.581
+lake trout,23Y6150_1,5.2661
+lake trout,23Y6150_2,5.0926
+lake trout,23Y6161_2,4.8248
+lake trout,23Y6166_1,5.4496
+lake trout,23Y6166_2,5.4248
+lake trout,23Y6170_1,5.5438
+lake trout,23Y6170_2,5.5711
+lake trout,23Y6171_1,5.2215
+lake trout,23Y6171_2,5.2141
+lake trout,23Y6172_1,5.5463
+lake trout,23Y6172_2,5.5414
+lake trout,23Y6173_1,5.4967
+lake trout,23Y6173_2,5.5339
+lake trout,23Y6174_1,4.919
+lake trout,23Y6174_2,4.7132
+lake trout,23Y6175_1,5.3182
+lake trout,23Y6175_2,5.3281
+lake trout,23Y6177_1,4.9636
+lake trout,23Y6177_2,4.9884
+lake trout,23Y6188_1,4.5471
+lake trout,23Y6188_2,4.686
+lake trout,23Y6198_1,4.9785
+lake trout,23Y6198_2,4.7826
+lake trout,23Y6202_1,5.2116
+lake trout,23Y6202_2,5.0033
+lake trout,23Y6205_1,5.4124
+lake trout,23Y6205_2,5.3529
+lake trout,23Y6206_1,5.1421
+lake trout,23Y6206_2,5.1298
+lake trout,23Y6207_1,4.6314
+lake trout,23Y6207_2,4.6686
+lake trout,23Y6214_1,5.6653
+lake trout,23Y6214_2,5.8736
+lake trout,23Y6234_1,5.1595
+lake trout,23Y6234_2,5.2364
+lake trout,23Y6238_1,5.3008
+lake trout,23Y6238_2,5.2314
+lake trout,23Y6239_1,5.5636
+lake trout,23Y6239_2,5.4446
+lake trout,23Y6241_1,4.7207
+lake trout,23Y6241_2,4.857
+lake trout,23Y6242_1,4.7281
+lake trout,23Y6242_2,4.8694
+lake trout,N23Y6101_1,5.3306
+lake trout,N23Y6101_2,5.3554
+lake trout,N23Y6228_1,5.3355
+lake trout,N23Y6228_2,5.5463
+walleye,BF1,1.548
+walleye,BF2,1.575
+walleye,BF3,1.6185
+walleye,BF4,1.614
+walleye,BF5,1.551
+walleye,BF6,1.5195
+walleye,BF7,1.539
+walleye,BF8,1.6185
+walleye,BF9,1.5225
+walleye,BF10,1.482
+walleye,BF11,1.5075
+walleye,BF12,1.4985
+walleye,BF13,1.5225
+walleye,BF14,1.4985
+walleye,BF15,1.5645
+walleye,BF16,1.593
+walleye,BF17,1.5945
+walleye,BF18,1.5105
+walleye,BF19,1.548
+walleye,BF20,1.5015
+walleye,BF21,1.6275
+walleye,BF22,1.536
+walleye,BF23,1.4955145
+walleye,BF24,1.4895
+walleye,BF25,1.539
+walleye,BF26,1.6035
+walleye,BF27,1.494
+walleye,BF28,1.554
+walleye,BF29,1.566
+walleye,BF30,1.5765
+walleye,BF31,1.5825
+walleye,BF32,1.509
+walleye,BF33,1.5945
+walleye,BF34,1.563
+walleye,BF35,1.5255
+walleye,BF36,1.4865
+walleye,BF37,1.5720135
+walleye,BF38,1.566
+walleye,BF39,1.461
+walleye,BF40,1.515
+walleye,BF41,1.611
+walleye,BF42,1.512
+walleye,BF43,1.539
+walleye,BF44,1.548
+walleye,BF45,1.545
+walleye,BF46,1.5105
+walleye,BF47,1.59
+walleye,BF48,1.4775
+walleye,BF49,1.5015
+walleye,BF50,1.5195
+walleye,BF51,1.635
+walleye,BF52,1.539
+walleye,BF53,1.5465
+walleye,BF54,1.563
+walleye,BF55,1.473
+walleye,BF56,1.5885
+walleye,BF57,1.551
+walleye,BF58,1.518
+walleye,BF59,1.4895
+walleye,BF60,1.605
+walleye,BF61,1.4685
+walleye,BF62,1.591
+walleye,BF63,1.585
+walleye,BF64,1.419
+walleye,BF65,1.578
+walleye,BF66,1.567
+walleye,BF67,1.516
+walleye,BF68,1.552
+walleye,BF69,1.479
+walleye,BF70,1.46
+walleye,BF71,1.533
+walleye,BF72,1.542
+walleye,BF73,1.598
+walleye,BF74,1.502
+walleye,BF75,1.589
+walleye,BF76,1.553
+walleye,BF77,1.522
+walleye,BF78,1.503
+walleye,BF79,1.427
+walleye,BF80,1.564
+walleye,BF81,1.518
+walleye,BF82,1.493
+walleye,BF83,1.563
+walleye,BF84,1.424
+walleye,BF85,1.501
+walleye,BF86,1.452
+walleye,BF87,1.475
+walleye,BF88,1.518
+walleye,BF89,1.585
+walleye,BF90,1.497
+walleye,BF91,1.541
+walleye,BF92,1.57
+walleye,BF93,1.498
+walleye,BF94,1.557
+walleye,BF95,1.584
+walleye,BF96,1.582
+walleye,BF97,1.47
+walleye,CH1,1.6065
+walleye,CH2,1.791
+walleye,CH3,1.602
+walleye,CH4,1.8525
+walleye,CH5,1.692
+walleye,CH6,1.7865
+walleye,CH7,1.6125
+walleye,CH8,1.6815
+walleye,CH9,1.6815
+walleye,CH10,1.6125
+walleye,CH11,1.929
+walleye,CH12,1.6635
+walleye,CH13,1.8075
+walleye,CH14,1.695
+walleye,CH15,1.614
+walleye,CH16,1.5915135
+walleye,CH17,1.569
+walleye,CH18,1.563
+walleye,CH19,1.4685
+walleye,CH20,1.5645
+walleye,CH21,1.4925
+walleye,CH22,1.5105
+walleye,CH23,1.5105135
+walleye,CH24,1.6395
+walleye,LBDN1,1.668
+walleye,LBDN2,1.65
+walleye,LBDN3,1.617
+walleye,LBDN4,1.629
+walleye,LBDN5,1.584
+walleye,LBDN6,1.5885
+walleye,LBDN7,1.602
+walleye,LBDN8,1.572
+walleye,LBDN9,1.62
+walleye,LBDN10,1.614
+walleye,LBDN11,1.668
+walleye,LBDN12,1.683
+walleye,LBDN13,1.5825
+walleye,LBDN14,1.674014
+walleye,LBDN15,1.6455
+walleye,LBDN16,1.4895
+walleye,LBDN17,1.5
+walleye,LBDN18,1.596
+walleye,LBDN19,1.611
+walleye,LBDN20,1.635
+walleye,LBDN21,1.611
+walleye,LBDN22,1.65
+walleye,LBDN23,1.6815
+walleye,LBDN24,1.545
+walleye,LBDN25,1.659
+walleye,LBDN26,1.6635
+walleye,LBDN27,1.5645
+walleye,LBDN28,
+walleye,LBDN29,1.695
+walleye,LBDN30,1.6275
+walleye,LBDN31,1.5435
+walleye,LBDN32,1.605
+walleye,LBDN33,1.644
+walleye,LBDN34,1.446
+walleye,LBDN35,1.5825
+walleye,LBDN36,1.545
+walleye,LBDN37,1.539
+walleye,LBDN38,1.422
+walleye,LBDN39,1.575
+walleye,LBDN40,1.5225
+walleye,LBDN41,1.623
+walleye,LBDN42,1.5345
+walleye,LBDN43,1.554
+walleye,LBDN44,1.6155
+walleye,LBDN45,1.743
+walleye,LBDN46,1.5375
+walleye,LBDN47,1.653
+walleye,LBDN48,1.632
+walleye,LBDN49,1.6545
+walleye,LBDN50,1.641
+walleye,MSK1,1.5975
+walleye,MSK2,1.5975
+walleye,MSK3,1.599
+walleye,MSK4,1.605
+walleye,MSK5,1.563
+walleye,MSK6,1.53
+walleye,MSK7,1.644
+walleye,MSK8,1.6125
+walleye,MSK9,1.581
+walleye,MSK10,1.629
+walleye,MSK11,1.653
+walleye,MSK13,1.593
+walleye,MSK14,1.6695
+walleye,MSK15,1.6575
+walleye,MSK16,1.713
+walleye,MSK17,1.653
+walleye,MSK18,1.581
+walleye,MSK19,1.6455
+walleye,MSK20,1.626
+walleye,MSK21,1.704
+walleye,MSK22,1.5945
+walleye,MSK23,1.596
+walleye,MSK24,1.59
+walleye,MSK25,1.5945
+walleye,MSK26,1.626
+walleye,MSK27,1.5675
+walleye,MSK28,1.5615
+walleye,MSK29,1.5945
+walleye,MSK30,1.5270745
+walleye,MSK31,1.5555
+walleye,MSK32,1.5840415
+walleye,MSK33,1.572
+walleye,MSK34,1.515
+walleye,MSK35,1.536
+walleye,MSK36,1.584
+walleye,MSK37,1.5915
+walleye,MSK38,1.56
+walleye,MSK39,1.635
+walleye,MSK40,1.5300145
+walleye,MSK41,1.6485
+walleye,MSK42,1.563
+walleye,MSK43,1.6335
+walleye,MSK44,1.623333333
+walleye,MSK45,1.536
+walleye,MSK46,1.515
+walleye,MSK47,1.6155
+walleye,MSK48,1.6785
+walleye,MSK49,1.578
+walleye,MSK50,1.5495
+walleye,WBS1,1.596015
+walleye,WBS2,1.638
+walleye,WBS3,1.6245
+walleye,WBS4,1.728013
+walleye,WBS5,1.611
