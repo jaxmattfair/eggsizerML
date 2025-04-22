@@ -71,7 +71,7 @@ jobs:
           set BOOST_ROOT=C:\tools\boost
           mkdir build
           cd build
-          cmake -DBOOST_INCLUDEDIR=%BOOST_ROOT%\include -DBOOST_LIBRARYDIR=%BOOST_ROOT%\lib ..
+          cmake -DBOOST_INCLUDEDIR=%BOOST_ROOT%\include -DBOOST_LIBRARYDIR=%BOOST_ROOT%\lib -G "Visual Studio 17 2022" ..
           msbuild eggsizerML.sln /p:Configuration=Release
 
       - name: Package Windows Deps
