@@ -36,6 +36,7 @@ jobs:
           cd C:\
           choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --apply-install-arguments-to-dependencies
           choco install opencv -y --install-args="'/DIR=C:\tools'"
+          choco install boost --install-args="'/DIR=C:\tools\boost'"
           python -m pip install -U pip
           python -m pip install aqtinstall
           aqt install-qt windows desktop 6.8.2 win64_msvc2022_64 -m all
@@ -66,9 +67,10 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           set OpenCV_DIR=C:\tools\opencv\build
+          set BOOST_ROOT=C:\tools\boost
           mkdir build
           cd build
-          cmake ..
+          cmake -DBOOST_INCLUDEDIR=%BOOST_ROOT%\include -DBOOST_LIBRARYDIR=%BOOST_ROOT%\lib ..s
           msbuild eggsizerML.sln /p:Configuration=Release
 
       - name: Package Windows Deps
