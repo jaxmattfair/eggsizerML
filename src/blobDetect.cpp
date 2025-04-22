@@ -1,6 +1,6 @@
 #include "../include/blobDetect.h"
 
-std::vector<double> detectBlobs(const cv::Mat &src, cv::Mat &dst, float pixToMM) {
+BlobResults detectBlobs(const cv::Mat &src, cv::Mat &dst, float pixToMM) {
     // Convert to grayscale if necessary
     cv::Mat gray;
     if (src.channels() == 3) {
@@ -31,9 +31,13 @@ std::vector<double> detectBlobs(const cv::Mat &src, cv::Mat &dst, float pixToMM)
 
     // return vector of blob areas
     std::vector<double> blob_areas;
+    std::vector<double> blob_widths;
     for (const auto &keypoint : keypoints) {
-        blob_areas.push_back((keypoint.size * keypoint.size * 3.14) / (4 * pixToMM));
+        double area = (CV_PI * keypoint.size * keypoint.size) / (4 * pixToMM * pixToMM);
+        double width = keypoint.size / pixToMM;
+        blob_areas.push_back(area);
+        blob_widths.push_back(width);
     }
 
-    return blob_areas;
+    return {blob_areas, blob_widths};
 }

@@ -225,6 +225,11 @@
           <string>Blob Size (mm)</string>
          </property>
         </column>
+        <column>
+         <property name="text">
+          <string>Width</string>
+         </property>
+        </column>
        </widget>
       </item>
      </layout>
