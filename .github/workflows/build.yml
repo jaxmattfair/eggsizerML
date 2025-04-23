@@ -37,7 +37,7 @@ jobs:
           choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --apply-install-arguments-to-dependencies
           choco install opencv -y --install-args="'/DIR=C:\tools'"
 
-          curl -L -o boost.zip https://boostorg.jfrog.io/artifactory/main/release/1.80.0/boost_1_80_0.zip
+          Invoke-WebRequest -Uri https://boostorg.jfrog.io/artifactory/main/release/1.80.0/boost_1_80_0.zip -OutFile boost.zip
           powershell -Command "Expand-Archive -Path boost.zip -DestinationPath C:\tools\boost"
 
           cd C:\tools\boost\boost_1_80_0
