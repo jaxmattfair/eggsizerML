@@ -41,7 +41,6 @@ set(PROJECT_SOURCES
 enable_testing()
 if(DEFINED ENV{GITHUB_ACTIONS})
     if(WIN32)
-        set(BOOST_ROOT "C:/local/boost_1_84_0")  # Adjust to wherever Boost is installed
         set(Boost_NO_SYSTEM_PATHS ON)
         set(Boost_USE_STATIC_LIBS OFF)
         set(Boost_USE_MULTITHREADED ON)
