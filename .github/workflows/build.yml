@@ -72,6 +72,15 @@ jobs:
         with:
           msbuild-version: 17.0
 
+      - name: Setup vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git C:/vcpkg
+          C:/vcpkg/bootstrap-vcpkg.bat
+
+      - name: Install Boost with vcpkg
+        run: |
+          C:/vcpkg/vcpkg install boost
+
       - name: Build MSVC
         if: matrix.os == 'windows-latest'
         run: |
@@ -79,7 +88,7 @@ jobs:
           mkdir build
           cd build
 
-          cmake -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -DOpenCV_DIR=C:/tools/opencv/build -DBOOST_ROOT=C:/vcpkg/installed/x64-windows -DBoost_INCLUDE_DIR=C:/vcpkg/installed/x64-windows/include -DBoost_LIBRARY_DIR=C:/vcpkg/installed/x64-windows/lib ..
+          cmake -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -DOpenCV_DIR=C:/tools/opencv/build -DBOOST_ROOT=C:/vcpkg/installed/x64-windows -DBoost_INCLUDE_DIR=C:/vcpkg/installed/x64-windows/include -DBoost_LIBRARY_DIR=C:/vcpkg/installed/x64-windows/lib -DBoost_USE_STATIC_LIBS=OFF -DBoost_USE_DYNAMIC_LIBS=ON -DBoost_COMPONENTS=unit_test_framework ..
           cmake --build . --config Release
 
 
