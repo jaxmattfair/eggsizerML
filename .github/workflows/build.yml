@@ -37,15 +37,14 @@ jobs:
           choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --apply-install-arguments-to-dependencies
           choco install opencv -y --install-args="'/DIR=C:\tools'"
 
-            choco install 7zip -y
+            choco install git -y
 
-            Invoke-WebRequest -Uri https://boostorg.jfrog.io/artifactory/main/release/1.80.0/boost_1_80_0.zip -OutFile boost.zip
+            git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+            C:\vcpkg\bootstrap-vcpkg.bat
 
-            7z x boost.zip -oC:\tools\boost -y
+            C:\vcpkg\vcpkg install boost-unit-test-framework:x64-windows
 
-            cd C:\tools\boost\boost_1_80_0
-            bootstrap.bat
-            .\b2 --with-unit_test_framework stage
+            C:\vcpkg\vcpkg integrate install
 
           python -m pip install -U pip
           python -m pip install aqtinstall
