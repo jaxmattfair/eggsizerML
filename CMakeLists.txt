@@ -37,7 +37,17 @@ set(PROJECT_SOURCES
 )
 
 enable_testing()
+if(DEFINED ENV{GITHUB_ACTIONS})
+    if(WIN32)
+        set(BOOST_ROOT "C:/local/boost_1_84_0")  # Adjust to wherever Boost is installed
+        set(Boost_NO_SYSTEM_PATHS ON)
+        set(Boost_USE_STATIC_LIBS OFF)
+        set(Boost_USE_MULTITHREADED ON)
+        set(Boost_USE_STATIC_RUNTIME OFF)
+    endif()
+endif()
 find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+include_directories(${Boost_INCLUDE_DIRS})
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(eggsizerML

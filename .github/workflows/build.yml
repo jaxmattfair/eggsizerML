@@ -38,7 +38,11 @@ jobs:
           choco install opencv -y --install-args="'/DIR=C:\tools'"
 
           curl -L -o boost.zip https://boostorg.jfrog.io/artifactory/main/release/1.80.0/boost_1_80_0.zip
-              powershell -Command "Expand-Archive -Path boost.zip -DestinationPath C:\tools\boost"
+          powershell -Command "Expand-Archive -Path boost.zip -DestinationPath C:\tools\boost"
+
+          cd C:\tools\boost\boost_1_80_0
+          bootstrap.bat
+          .\b2 --with-unit_test_framework stage
 
           python -m pip install -U pip
           python -m pip install aqtinstall
