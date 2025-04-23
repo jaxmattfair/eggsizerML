@@ -75,15 +75,11 @@ jobs:
       - name: Build MSVC
         if: matrix.os == 'windows-latest'
         run: |
-          set OpenCV_DIR=C:\tools\opencv\build
-          set BOOST_ROOT=C:\vcpkg\installed\x64-windows
-          set BOOST_INCLUDEDIR=C:\vcpkg\installed\x64-windows\include
-          set BOOST_LIBRARYDIR=C:\vcpkg\installed\x64-windows\lib
 
           mkdir build
           cd build
 
-          cmake -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -DOpenCV_DIR=%OpenCV_DIR% -DBOOST_ROOT=%BOOST_ROOT% -DBoost_INCLUDE_DIR=%BOOST_INCLUDEDIR% -DBoost_LIBRARY_DIR=%BOOST_LIBRARYDIR% ..
+          cmake -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -DOpenCV_DIR=C:/tools/opencv/build -DBOOST_ROOT=C:/vcpkg/installed/x64-windows -DBoost_INCLUDE_DIR=C:/vcpkg/installed/x64-windows/include -DBoost_LIBRARY_DIR=C:/vcpkg/installed/x64-windows/lib ..
           cmake --build . --config Release
 
 
