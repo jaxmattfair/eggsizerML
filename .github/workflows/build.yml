@@ -37,12 +37,15 @@ jobs:
           choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --apply-install-arguments-to-dependencies
           choco install opencv -y --install-args="'/DIR=C:\tools'"
 
-          Invoke-WebRequest -Uri https://boostorg.jfrog.io/artifactory/main/release/1.80.0/boost_1_80_0.zip -OutFile boost.zip
-          powershell -Command "Expand-Archive -Path boost.zip -DestinationPath C:\tools\boost"
+            choco install 7zip -y
 
-          cd C:\tools\boost\boost_1_80_0
-          bootstrap.bat
-          .\b2 --with-unit_test_framework stage
+            Invoke-WebRequest -Uri https://boostorg.jfrog.io/artifactory/main/release/1.80.0/boost_1_80_0.zip -OutFile boost.zip
+
+            7z x boost.zip -oC:\tools\boost -y
+
+            cd C:\tools\boost\boost_1_80_0
+            bootstrap.bat
+            .\b2 --with-unit_test_framework stage
 
           python -m pip install -U pip
           python -m pip install aqtinstall
