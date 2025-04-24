@@ -197,11 +197,8 @@ bool eggsizerML::loadFile(const QString &fileName) {
   return true;
 }
 
-void eggsizerML::outputResult(
-    const QString &filename, std::vector<std::string> &imageNames,
-    const std::vector<int> &eggNumbers, const std::vector<double> &avgAreas,
-    const std::vector<double> &otsusAreas, const std::vector<double> &blobAreas,
-    const std::vector<double> &certainties, int outputFormat, int emitImage) {
+void eggsizerML::outputResult(eggResults results, const QString &filename,
+                              int outputFormat, int emitImage) {
   // output formats are as follows:
   // 0 = CSV (default)
   // 1 = JSON
@@ -216,101 +213,70 @@ void eggsizerML::outputResult(
   QTextStream out(&file);
   // CSV output
   // write headers (Image Name, Egg no., Avg. Area, Otsus Area, Blob Area,
-  // Certainty)
-  out << "Image Name, Egg No., Avg. Area, Otsus Area, Blob Area, Certainty\n";
+  // Confidence)
+  out << "Image Name, Egg No., Avg. Area, Otsus Area, Blob Area, Confidence\n";
 
-  // The results object is a vector of vectors:
-  // image names vector
-  // egg numbers vector (numbers split per image)
-  // average areas vector (per egg, averaged between Otsus and Blob areas)
-  // otsus areas vector (per egg)
-  // blob areas vector (per egg)
-  // a vector of certainties
-  size_t longest_vec_size =
-      std::max({imageNames.size(), eggNumbers.size(), avgAreas.size(),
-                otsusAreas.size(), blobAreas.size(), certainties.size()});
+  // for each pair in results object
+  for (auto &pair : results.imageMeasurements) {
+    const std::string &imageName = pair.first; // Image Name
+    const std::vector<eggMeasurement> &measurements = pair.second;
 
-  if (longest_vec_size == 0) {
-    QMessageBox::warning(this, tr("Error"),
-                         tr("No data to output. Results are empty."));
-    file.close();
-    return;
-  }
+    // for each egg measurement in the vector
+    for (const eggMeasurement &egg : measurements) {
+      QString eggNo = QString::number(egg.eggLabel);             // Egg No.
+      QString avgArea = QString::number(egg.avgArea, 'f', 4);    // Avg. Area
+      QString otsusArea = QString::number(egg.otsuArea, 'f', 2); // Otsus Area
+      QString blobArea = QString::number(egg.blobArea, 'f', 2);  // Blob Area
+      QString confidenceScore =
+          QString::number(egg.confidenceScore, 'f', 2); // Confidence
 
-  for (size_t i = 0; i < longest_vec_size; i++) {
-    // collect results or default to "N/A" if out of range
-    QString imageName =
-        imageNames.size() > i
-            ? QString::fromStdString(imageNames[i]) // Image Name
-            : QString("N/A"); // Default to "N/A" if no image name
-    QString eggNo = eggNumbers.size() > i
-                        ? QString::number(eggNumbers[i]) // Egg No.
-                        : QString("N/A");
-    QString avgArea = avgAreas.size() > i
-                          ? QString::number(avgAreas[i], 'f', 4) // Avg. Area
-                          : QString("N/A");
-    QString otsusArea =
-        otsusAreas.size() > i
-            ? QString::number(otsusAreas[i], 'f', 2) // Otsus Area
-            : QString("N/A");
-    QString blobArea = blobAreas.size() > i
-                           ? QString::number(blobAreas[i], 'f', 2) // Blob Area
-                           : QString("N/A");
-    QString certainty =
-        certainties.size() > i
-            ? QString::number(certainties[i], 'f', 2) // Certainty
-            : QString("N/A");
-
-    if (outputFormat == 0) { // CSV output
-      // Image Name, Egg No., Avg. Area, Otsus Area, Blob Area, Certainty
-      out << imageName << ",";      // Image Name
-      out << eggNo << ",";          // Egg No.
-      out << avgArea << ",";        // Avg. Area
-      out << otsusArea << ",";      // Otsus Area
-      out << blobArea << ",";       // Blob Area
-      out << certainty << "\n";     // Certainty
-    } else if (outputFormat == 1) { // JSON output
-      out << "{\n";
-      out << "  \"Image Name\": \"" << imageName << "\",\n";
-      out << "  \"Egg No.\": " << eggNo << ",\n";
-      out << "  \"Avg. Area\": " << avgArea << ",\n";
-      out << "  \"Otsus Area\": " << otsusArea << ",\n";
-      out << "  \"Blob Area\": " << blobArea << ",\n";
-      out << "  \"Certainty\": " << certainty << "\n";
-      out << "}\n";
-    } else {
-      QMessageBox::warning(this, tr("Error"),
-                           tr("Invalid output format selected"));
-    }
-  }
-  file.close();
-  QMessageBox::information(
-      this, tr("Success"),
-      tr("Results saved successfully to %1").arg(filename));
-
-  if (emitImage) {
-    for (size_t i = 0; i < imageNames.size(); i++) {
-      QString imagePath = QString::fromStdString(imageNames[i]);
-      QString outputImageName =
-          QFileInfo(imagePath).completeBaseName() + "_analyze.png";
-
-      if (!blobDst.empty()) {
-        cv::imwrite(outputImageName.toStdString(), blobDst);
+      if (outputFormat == 0) {                           // CSV output
+        out << QString::fromStdString(imageName) << ","; // Image Name
+        out << eggNo << ",";                             // Egg No.
+        out << avgArea << ",";                           // Avg. Area
+        out << otsusArea << ",";                         // Otsus Area
+        out << blobArea << ",";                          // Blob Area
+        out << confidenceScore << "\n";                  // Certainty
+      } else if (outputFormat == 1) {                    // JSON output
+        out << "{\n";
+        out << "  \"Image Name\": \"" << QString::fromStdString(imageName)
+            << "\",\n";
+        out << "  \"Egg No.\": " << eggNo << ",\n";
+        out << "  \"Avg. Area\": " << avgArea << ",\n";
+        out << "  \"Otsus Area\": " << otsusArea << ",\n";
+        out << "  \"Blob Area\": " << blobArea << ",\n";
+        out << "  \"Confidence\": " << confidenceScore << "\n";
+        out << "}\n";
       } else {
-        QMessageBox::warning(
-            this, tr("Error"),
-            tr("Failed to save blob image: %1").arg(outputImageName));
-      }
-      outputImageName = QFileInfo(imagePath).completeBaseName() + "_otsus.png";
-      if (!polyDst.empty()) {
-        cv::imwrite(outputImageName.toStdString(), polyDst);
-      } else {
-        QMessageBox::warning(
-            this, tr("Error"),
-            tr("Failed to save otsus image: %1").arg(outputImageName));
+        QMessageBox::warning(this, tr("Error"),
+                             tr("Invalid output format selected"));
       }
     }
   }
+
+  // if (emitImage) {
+  //   for (size_t i = 0; i < imageNames.size(); i++) {
+  //     QString imagePath = QString::fromStdString(imageNames[i]);
+  //     QString outputImageName =
+  //         QFileInfo(imagePath).completeBaseName() + "_analyze.png";
+
+  //     if (!blobDst.empty()) {
+  //       cv::imwrite(outputImageName.toStdString(), blobDst);
+  //     } else {
+  //       QMessageBox::warning(
+  //           this, tr("Error"),
+  //           tr("Failed to save blob image: %1").arg(outputImageName));
+  //     }
+  //     outputImageName = QFileInfo(imagePath).completeBaseName() +
+  //     "_otsus.png"; if (!polyDst.empty()) {
+  //       cv::imwrite(outputImageName.toStdString(), polyDst);
+  //     } else {
+  //       QMessageBox::warning(
+  //           this, tr("Error"),
+  //           tr("Failed to save otsus image: %1").arg(outputImageName));
+  //     }
+  //   }
+  // }
 
   return;
 }
@@ -342,14 +308,7 @@ void eggsizerML::on_saveResults_btn_clicked() {
     return;
   }
 
-  // for all currently selected images, run analysis and concatenate results
-  // vectors
-  std::vector<std::string> imageNames;
-  std::vector<int> eggNumbers;
-  std::vector<double> avgAreas;
-  std::vector<double> otsusAreas;
-  std::vector<double> blobAreas;
-  std::vector<double> certainties;
+  eggResults results;
 
   for (const QString &filePath : imageFiles) {
     // Load the image
@@ -370,35 +329,25 @@ void eggsizerML::on_saveResults_btn_clicked() {
         polyApproxFromEdges(&cannyDst, &polyDst, &orig);
     std::vector<double> blob_areas = detectBlobs(orig, blobDst);
     int longer_areas = std::max(otsus_areas.size(), blob_areas.size());
+    std::string img_name =
+        filePath
+            .section('/', -1)  // Get the last section after '/'
+            .section('\\', -1) // In case of Windows path
+            .toStdString();
 
     // Store results
     for (int i = 0; i < longer_areas; i++) {
-      // strip all but the filename
-      imageNames.push_back(
-          filePath
-              .section('/', -1)  // Get the last section after '/'
-              .section('\\', -1) // In case of Windows path
-              .toStdString());   // Convert to std::string
-      eggNumbers.push_back(i + 1);
-      double tempOtsusArea = otsus_areas.size() > i ? otsus_areas[i] : -1.0;
-      double tempBlobArea = blob_areas.size() > i ? blob_areas[i] : -1.0;
-      double avgArea =
-          (tempOtsusArea >= 0 && tempBlobArea >= 0)
-              ? (tempOtsusArea + tempBlobArea) / 2.0
-              : (tempOtsusArea >= 0 ? tempOtsusArea : tempBlobArea);
-      avgAreas.push_back(avgArea);
-      // Certainty calculation (dummy example)
-      double certainty = 0.0;
-      if (!otsus_areas.empty()) {
-        certainty = 1.0; // Placeholder for actual certainty calculation
-        certainties.push_back(certainty);
-      } else {
-        certainties.push_back(0.0); // No eggs detected
-      }
-    }
+      eggMeasurement egg;
+      egg.eggLabel = i + 1; // Store the image name as egg label
+      egg.otsuArea = otsus_areas.size() > i ? otsus_areas[i] : -1.0;
+      egg.blobArea = blob_areas.size() > i ? blob_areas[i] : -1.0;
+      egg.computeWidths();  // Compute widths from areas
+      egg.computeAvgArea(); // Compute average area
 
-    otsusAreas.insert(otsusAreas.end(), otsus_areas.begin(), otsus_areas.end());
-    blobAreas.insert(blobAreas.end(), blob_areas.begin(), blob_areas.end());
+      // Store the egg measurement in results
+      results.imageMeasurements[img_name].push_back(egg);
+    }
+    results.computeConfidence();
   }
 
   // store results in Downloadsresults.csv
@@ -407,8 +356,8 @@ void eggsizerML::on_saveResults_btn_clicked() {
       QStandardPaths::writableLocation(QStandardPaths::DownloadLocation) +
           "/results.csv",
       tr("CSV Files (*.csv);;JSON Files (*.json)"));
-  outputResult(resultsFile, imageNames, eggNumbers, avgAreas, otsusAreas,
-               blobAreas, certainties, 0, 1);
+  outputResult(results, resultsFile, 0,
+               0); // 0 for CSV output, 0 for no image emit
 
   return;
 }
