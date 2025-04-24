@@ -58,10 +58,10 @@ void runMeasurementAccuracyTests(
         double errorPercent = 100.0 * std::abs(measuredAvgWidth - expectedWidth) / expectedWidth;
 
         // output of widths
-        if (errorPercent <= allowedPercentError) {
-            std::cout << std::to_string(errorPercent);
-            std::cout << std::endl;
-        }
+        // if (errorPercent <= allowedPercentError) {
+        //     std::cout << std::to_string(errorPercent);
+        //     std::cout << std::endl;
+        // }
 
 
 
@@ -77,10 +77,35 @@ void runMeasurementAccuracyTests(
 BOOST_AUTO_TEST_CASE(Cisco_Egg_Measurements) {
     fs::path testPath = fs::path(__FILE__);
     fs::path root = testPath.parent_path().parent_path();
+    std::cout << "cisco";
     runMeasurementAccuracyTests(
         "cisco",
         "../tests/data/data.csv",
         "../tests/data/cisco",
         5.0 // Allow 5% error
+        );
+}
+
+BOOST_AUTO_TEST_CASE(Walleye_Egg_Measurements) {
+    fs::path testPath = fs::path(__FILE__);
+    fs::path root = testPath.parent_path().parent_path();
+    std::cout << "walleye";
+    runMeasurementAccuracyTests(
+        "walleye",
+        "../tests/data/data.csv",
+        "../tests/data/samples",
+        5.0
+        );
+}
+
+BOOST_AUTO_TEST_CASE(Lake_Trout_Egg_Measurements) {
+    fs::path testPath = fs::path(__FILE__);
+    fs::path root = testPath.parent_path().parent_path();
+    std::cout << "lake trout";
+    runMeasurementAccuracyTests(
+        "lake trout",
+        "../tests/data/data.csv",
+        "../tests/data/LT_eggs",
+        5.0
         );
 }
