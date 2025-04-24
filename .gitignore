@@ -80,8 +80,3 @@ CMakeLists.txt.user*
 .rcc/
 .uic/
 /build*/
-
-# NPM and Node.js
-node_modules/
-dist/
-assets/
