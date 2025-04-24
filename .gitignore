@@ -83,3 +83,4 @@ CMakeLists.txt.user*
 
 # NPM
 node_modules/
+dist/
