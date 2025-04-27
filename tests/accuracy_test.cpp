@@ -1,11 +1,15 @@
 #define BOOST_TEST_MODULE MeasurementAccuracyTest
 #include <boost/test/included/unit_test.hpp>
 #include "../include/measurement.hpp"
+#include "../include/cannyDetect.h"
+#include "../include/measureEdges.h"
+#include "../include/blobDetect.h"
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <cmath>
 #include <filesystem>
+#include <opencv2/opencv.hpp>
 
 namespace fs = std::filesystem;
 
@@ -14,7 +18,8 @@ void runMeasurementAccuracyTests(
     const std::string& dataFilePath,
     const std::string& imageFolderPath,
     double allowedPercentError = 5.0
-    ) {
+    )
+{
     std::ifstream csv(dataFilePath);
     std::string line;
 
@@ -25,51 +30,56 @@ void runMeasurementAccuracyTests(
         std::string speciesName, imageId, widthStr;
         std::getline(ss, speciesName, ',');
         std::getline(ss, imageId, ',');
-        std::getline(ss, widthStr, ',');  // Assuming the CSV contains the width data instead of diameter
+        std::getline(ss, widthStr, ',');
 
         if (speciesName != species) continue;
 
-        // Check for valid width data
         if (widthStr.empty()) {
             BOOST_FAIL("Empty width string for image: " + imageId);
-        } else {
-            try {
-                double expectedWidth = std::stod(widthStr);  // Using width here, not diameter
-            } catch (const std::invalid_argument& e) {
-                BOOST_FAIL("Invalid width string: '" + widthStr + "' for image: " + imageId);
-            }
         }
 
-        double expectedWidth = std::stod(widthStr);  // Expected width from CSV
+        double expectedWidth = std::stod(widthStr);
         std::string imagePath = imageFolderPath + "/" + imageId + ".jpg";
 
         BOOST_TEST_MESSAGE("Testing image: " + imagePath);
         BOOST_REQUIRE_MESSAGE(fs::exists(imagePath), "Image file not found: " + imagePath);
 
-        MeasurementResult result = measureEdges(imagePath);
+        // ---- Blob detection width measurement ----
+        MeasurementResult blobResult = measureEdges(imagePath);
 
-        // Calculate the average width from the blobs (assuming blob_widths contains this data)
-        double measuredAvgWidth = 0.0;
-        if (!result.widths.empty()) {
-            measuredAvgWidth = std::accumulate(result.widths.begin(), result.widths.end(), 0.0) / result.widths.size();
+        // ---- Updated edge detection (autoCanny + polyApproxFromEdges) ----
+        cv::Mat orig = cv::imread(imagePath);
+        BOOST_REQUIRE_MESSAGE(!orig.empty(), "Failed to load image: " + imagePath);
+
+        cv::Mat cannyDst;
+        autoCanny(&orig, &cannyDst);
+
+        cv::Mat polyDst;
+        EdgeMeasureResults edgeResults = polyApproxFromEdges(&cannyDst, &polyDst, &orig);
+
+        // ---- Calculating average widths ----
+        double measuredBlobWidth = 0.0;
+        if (!blobResult.widths.empty()) {
+            measuredBlobWidth = std::accumulate(blobResult.widths.begin(), blobResult.widths.end(), 0.0) / blobResult.widths.size();
         }
 
-        // Calculate error in percentage
-        double errorPercent = 100.0 * std::abs(measuredAvgWidth - expectedWidth) / expectedWidth;
+        double measuredEdgeWidth = 0.0;
+        if (!edgeResults.widths.empty()) {
+            measuredEdgeWidth = std::accumulate(edgeResults.widths.begin(), edgeResults.widths.end(), 0.0) / edgeResults.widths.size();
+        }
 
-        // output of widths
-        // if (errorPercent <= allowedPercentError) {
-        //     std::cout << std::to_string(errorPercent);
-        //     std::cout << std::endl;
-        // }
-
-
-
-
+        // ---- Error checking ----
+        double blobErrorPercent = 100.0 * std::abs(measuredBlobWidth - expectedWidth) / expectedWidth;
+        double edgeErrorPercent = 100.0 * std::abs(measuredEdgeWidth - expectedWidth) / expectedWidth;
 
         BOOST_CHECK_MESSAGE(
-            errorPercent <= allowedPercentError,
-            "Measurement for " + imageId + " is off by " + std::to_string(errorPercent) + "%. Expected: " + std::to_string(expectedWidth) + ", got: " + std::to_string(measuredAvgWidth)
+            blobErrorPercent <= allowedPercentError,
+            "Blob measurement for " + imageId + " is off by " + std::to_string(blobErrorPercent) + "%. Expected: " + std::to_string(expectedWidth) + ", got: " + std::to_string(measuredBlobWidth)
+            );
+
+        BOOST_CHECK_MESSAGE(
+            edgeErrorPercent <= allowedPercentError,
+            "Edge-based measurement for " + imageId + " is off by " + std::to_string(edgeErrorPercent) + "%. Expected: " + std::to_string(expectedWidth) + ", got: " + std::to_string(measuredEdgeWidth)
             );
     }
 }
@@ -95,7 +105,7 @@ BOOST_AUTO_TEST_CASE(Walleye_Egg_Measurements) {
         "../tests/data/data.csv",
         "../tests/data/samples",
         5.0
-        );
+    );
 }
 
 BOOST_AUTO_TEST_CASE(Lake_Trout_Egg_Measurements) {
@@ -107,5 +117,5 @@ BOOST_AUTO_TEST_CASE(Lake_Trout_Egg_Measurements) {
         "../tests/data/data.csv",
         "../tests/data/LT_eggs",
         5.0
-        );
+    );
 }

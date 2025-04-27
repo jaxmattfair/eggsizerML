@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
+# set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
 project(eggsizerML VERSION 0.1 LANGUAGES CXX)
 
@@ -57,6 +57,8 @@ add_executable(accuracy_test
     tests/accuracy_test.cpp
     src/measurement.cpp
     src/blobDetect.cpp
+    src/measureEdges.cpp
+    src/cannyDetect.cpp
 )
 
 target_include_directories(accuracy_test PRIVATE
@@ -80,7 +82,12 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         src/measurement.cpp
+        src/blobDetect.cpp
+        src/measureEdges.cpp
         include/measurement.hpp
+        include/blobDetect.h
+        include/measureEdges.h
+        include/cannyDetect.h
     )
 else()
     if(ANDROID)
