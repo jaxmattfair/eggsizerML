@@ -2,9 +2,6 @@
 #define EGGSIZERML_H
 
 // std lib inclusions
-#include <cmath> // For M_PI and sqrt
-#include <string>
-#include <vector>
 
 // Qt Native Stuff
 #include <QDir>
@@ -19,6 +16,9 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+
+// Custom Structs
+#include "resultStructs.h"
 
 QT_BEGIN_NAMESPACE namespace Ui { class eggsizerML; }
 QT_END_NAMESPACE

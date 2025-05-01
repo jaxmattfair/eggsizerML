@@ -1,39 +1,44 @@
 #include "../include/blobDetect.h"
 
-std::vector<double> detectBlobs(const cv::Mat &src, cv::Mat &dst, float pixToMM) {
-    // Convert to grayscale if necessary
-    cv::Mat gray;
-    if (src.channels() == 3) {
-        cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);
-    } else {
-        gray = src.clone();
-    }
+std::vector<double> detectBlobs(const cv::Mat *src, cv::Mat *dst,
+                                float pixToMM) {
+  // Convert to grayscale if necessary
+  cv::Mat gray;
+  if (src->channels() == 3) {
+    cv::cvtColor(*src, gray, cv::COLOR_BGR2GRAY);
+  } else {
+    gray = src->clone();
+  }
 
-    // Set up SimpleBlobDetector parameters
-    cv::SimpleBlobDetector::Params params;
-    params.filterByArea = true;
-    params.minArea = 5000;
-    params.maxArea = 500000;
-    params.filterByCircularity = false;
-    params.filterByConvexity = false;
-    params.filterByInertia = false;
+  // Set up SimpleBlobDetector parameters
+  cv::SimpleBlobDetector::Params params;
+  params.filterByArea = true;
+  params.minArea = 5000;
+  params.maxArea = 500000;
+  params.filterByCircularity = false;
+  params.filterByConvexity = false;
+  params.filterByInertia = false;
 
-    // Create SimpleBlobDetector
-    cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
+  // Create SimpleBlobDetector
+  cv::Ptr<cv::SimpleBlobDetector> detector =
+      cv::SimpleBlobDetector::create(params);
 
-    // Detect blobs
-    std::vector<cv::KeyPoint> keypoints;
-    detector->detect(gray, keypoints);
+  // Detect blobs
+  std::vector<cv::KeyPoint> keypoints;
+  detector->detect(gray, keypoints);
 
-    // Draw detected blobs
-    dst = src.clone();
-    cv::drawKeypoints(src, keypoints, dst, cv::Scalar(0, 0, 255), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+  // Draw detected blobs
+  *dst = src->clone();
+  cv::drawKeypoints(*src, keypoints, *dst, cv::Scalar(0, 0, 255),
+                    cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
 
-    // return vector of blob areas
-    std::vector<double> blob_areas;
-    for (const auto &keypoint : keypoints) {
-        blob_areas.push_back((keypoint.size * keypoint.size * 3.14) / (4 * pixToMM));
-    }
+  // return vector of blob areas
+  std::vector<double> blob_areas;
+  for (const auto &keypoint : keypoints) {
+    double area =
+        (CV_PI * keypoint.size * keypoint.size) / (4 * pixToMM * pixToMM);
+    blob_areas.push_back(area);
+  }
 
-    return blob_areas;
+  return blob_areas;
 }

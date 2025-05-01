@@ -1,4 +1,5 @@
 #include "../include/measureEdges.h"
+#include <iostream> // Include for debugging
 
 std::vector<double> polyApproxFromEdges(cv::Mat* src, cv::Mat* dst, cv::Mat* orig, float pixToMM) {
     // Set up output mat + array
@@ -38,8 +39,9 @@ std::vector<double> polyApproxFromEdges(cv::Mat* src, cv::Mat* dst, cv::Mat* ori
             eggIndex++;
         }
     }
+  }
 
-    return egg_areas;
+  return egg_areas;
 }
 
 std::vector<cv::Point> getCentroidsFromEdges(cv::Mat* src, cv::Mat* dst, cv::Mat* orig) {
