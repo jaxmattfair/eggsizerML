@@ -8,7 +8,7 @@ struct eggMeasurement {
   double otsuArea;
   double blobArea;
   double avgArea;
-  double confidenceScore;
+  double confidence;
   double otsuWidth;
   double blobWidth;
   double avgWidth;
@@ -50,9 +50,6 @@ struct eggMeasurement {
       avgArea = (otsuArea + blobArea) / 2.0; // Average of both areas
     }
   }
-
-  // Compute confidence score based on mean & std. dev of eggs in image
-  void computeConfidence() { confidenceScore = 0.5; }
 };
 
 struct eggResults {
@@ -60,11 +57,16 @@ struct eggResults {
   std::map<std::string, std::vector<eggMeasurement>> imageMeasurements;
 
   // Compute confidence score for each egg in each image
-  // (Just calls computeConfidence() on each eggMeasurement)
   void computeConfidence() {
     for (auto &pair : imageMeasurements) {
       for (eggMeasurement &egg : pair.second) {
-        egg.computeConfidence();
+        if (!(egg.otsuArea >= 0) || !(egg.blobArea >= 0)) {
+          egg.confidence = 0.0; // Invalid areas
+        } else {
+          egg.confidence =
+              1.0 - pow(abs(egg.otsuArea - egg.avgArea) / egg.avgArea, 0.5);
+          egg.confidence = std::max(0.0, std::min(1.0, egg.confidence));
+        }
       }
     }
   }
