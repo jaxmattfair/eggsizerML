@@ -1,4 +1,5 @@
 #include "../include/measureEdges.h"
+#include <iostream> // Include for debugging
 
 std::vector<double> polyApproxFromEdges(cv::Mat *src, cv::Mat *dst,
                                         cv::Mat *orig, float pixToMM) {

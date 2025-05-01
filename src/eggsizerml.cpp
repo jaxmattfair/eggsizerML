@@ -330,7 +330,7 @@ void eggsizerML::on_saveResults_btn_clicked() {
     results.computeConfidence();
   }
 
-  // store results in Downloadsresults.csv
+  // store results in Downloads/results.csv
   QString resultsFile = QFileDialog::getSaveFileName(
       this, tr("Save Results"),
       QStandardPaths::writableLocation(QStandardPaths::DownloadLocation) +
