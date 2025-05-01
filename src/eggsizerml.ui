@@ -45,9 +45,9 @@
     <widget class="QWidget" name="horizontalLayoutWidget_3">
      <property name="geometry">
       <rect>
-       <x>-1</x>
+       <x>9</x>
        <y>80</y>
-       <width>1031</width>
+       <width>871</width>
        <height>591</height>
       </rect>
      </property>
@@ -56,39 +56,6 @@
        <layout class="QVBoxLayout" name="image_output_disp">
         <item>
          <layout class="QHBoxLayout" name="image_output_u_disp">
-          <item>
-           <layout class="QVBoxLayout" name="image_output_ul_disp">
-            <item>
-             <widget class="QLabel" name="imgLabel_ul">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>15</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Uploaded Image</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="imgDisp_ul">
-              <property name="frameShape">
-               <enum>QFrame::Shape::Box</enum>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="scaledContents">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
           <item>
            <layout class="QVBoxLayout" name="image_output_ur_disp">
             <item>
@@ -127,39 +94,6 @@
         <item>
          <layout class="QHBoxLayout" name="image_output_l_disp">
           <item>
-           <layout class="QVBoxLayout" name="image_output_ll_disp">
-            <item>
-             <widget class="QLabel" name="imgLabel_ll">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>15</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Otsu's Processed Image</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="imgDisp_ll">
-              <property name="frameShape">
-               <enum>QFrame::Shape::Box</enum>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="scaledContents">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
            <layout class="QVBoxLayout" name="image_output_lr_disp">
             <item>
              <widget class="QLabel" name="imgLabel_lr">
@@ -179,6 +113,12 @@
             </item>
             <item>
              <widget class="QLabel" name="imgDisp_lr">
+              <property name="maximumSize">
+               <size>
+                <width>16777208</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="frameShape">
                <enum>QFrame::Shape::Box</enum>
               </property>
@@ -198,11 +138,17 @@
       </item>
       <item>
        <widget class="QTableWidget" name="tableWidget">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="maximumSize">
          <size>
-          <width>300</width>
+          <width>370</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="editTriggers">
+         <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
         </property>
         <attribute name="horizontalHeaderVisible">
          <bool>true</bool>
@@ -222,7 +168,22 @@
         </column>
         <column>
          <property name="text">
+          <string>Otsu's Width (mm)</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
           <string>Blob Size (mm)</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Blob Width (mm)</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Confidence</string>
          </property>
         </column>
        </widget>
@@ -279,6 +240,22 @@
      </property>
      <property name="text">
       <string>Open Folder</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="infoIcon">
+     <property name="geometry">
+      <rect>
+       <x>820</x>
+       <y>50</y>
+       <width>21</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Version: 1.0.0&lt;/p&gt;&lt;p&gt;Developers: Jackson Fair, James Murrer, Benjamin Davis&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>info</string>
      </property>
     </widget>
    </widget>

@@ -5,6 +5,8 @@
 #include "../include/measureEdges.h"
 #include "../include/ui_eggsizerml.h"
 #include <opencv2/core/mat.hpp>
+#include <QPainter>
+#include <QToolTip>
 
 // GLOBAL APPLICATION DATA STORAGE
 //(keep this to a MINIMUM)
@@ -18,14 +20,8 @@ eggsizerML::eggsizerML(QWidget *parent)
   ui->setupUi(this);
   int fixedImageWidth = 400; // Adjust to match your design
 
-  ui->imgDisp_ul->setMinimumWidth(fixedImageWidth);
-  ui->imgDisp_ul->setMaximumWidth(fixedImageWidth);
-
   ui->imgDisp_ur->setMinimumWidth(fixedImageWidth);
   ui->imgDisp_ur->setMaximumWidth(fixedImageWidth);
-
-  ui->imgDisp_ll->setMinimumWidth(fixedImageWidth);
-  ui->imgDisp_ll->setMaximumWidth(fixedImageWidth);
 
   ui->imgDisp_lr->setMinimumWidth(fixedImageWidth);
   ui->imgDisp_lr->setMaximumWidth(fixedImageWidth);
@@ -139,62 +135,133 @@ void eggsizerML::loadImageAtIndex(int index) {
   loadFile(imageFiles[index]); // Load the selected image
 }
 
+void eggsizerML::handleEggSegmentation(cv::Mat* src, cv::Mat* dst, cv::Mat* orig, float pixToMM) {
+    std::vector<double> eggAreas = polyApproxFromEdges(src, dst, orig, pixToMM);
+
+    // Convert the polygon-detection image (polygon approximation) to QImage for display
+    QImage imgPoly = ASM::cvMatToQImage(*dst); // This is the polygon approximation image (polyapprox)
+
+    // Convert the blob-detection image to QImage for display
+    QImage imgBlob = ASM::cvMatToQImage(blobDst); // This is the blob-detected image (blob)
+
+    // Label the blob image (imgDisp_ur)
+    QPainter painterBlob(&imgBlob);
+    painterBlob.setPen(Qt::red);  // Use a color for blob labels
+    painterBlob.setFont(QFont("Arial", 12));
+
+    std::vector<cv::Point> blobCentroids = getCentroidsFromEdges(src, &blobDst, orig); // Assuming this gets blob centroids
+    for (int i = 0; i < blobCentroids.size(); ++i) {
+        QString label = QString::number(i + 1); // Label blobs as 1, 2, 3, ...
+        QPoint center(blobCentroids[i].x, blobCentroids[i].y);
+        painterBlob.drawText(center, label);
+    }
+
+    // Display the blob image (imgDisp_ur)
+    ui->imgDisp_ur->setPixmap(QPixmap::fromImage(imgBlob));
+
+    // Label the polygon-detection image (imgDisp_lr) (this is already working as expected)
+    QPainter painterPoly(&imgPoly);
+    painterPoly.setPen(Qt::green);  // Use a different color for polygon labels
+    painterPoly.setFont(QFont("Arial", 12));
+
+    std::vector<cv::Point> polyCentroids = getCentroidsFromEdges(src, dst, orig); // Assuming this gets polygon centroids
+    for (int i = 0; i < polyCentroids.size(); ++i) {
+        QString label = QString::number(i + 1); // Label polygons as 1, 2, 3, ...
+        QPoint center(polyCentroids[i].x, polyCentroids[i].y);
+        painterPoly.drawText(center, label);
+    }
+
+    // Display the polygon approximation image (imgDisp_lr)
+    ui->imgDisp_lr->setPixmap(QPixmap::fromImage(imgPoly));
+}
+
+QImage MatToQImage(const cv::Mat& mat) {
+    QImage img(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGB888);
+    return img.rgbSwapped();
+}
+
+void eggsizerML::onInfoIconHovered() {
+    QToolTip::showText(QCursor::pos(), "Version: 1.0.0\nDevelopers: Jackson Fair, James Murrer, Benjamin Davis");
+}
+
 // loads file into label element & CV mat for analysis
 bool eggsizerML::loadFile(const QString &fileName) {
-  // validate file and read in
-  QImageReader reader(fileName);
-  reader.setAutoTransform(true);
-  const QImage originalImage = reader.read();
-  if (originalImage.isNull()) {
-    QMessageBox::information(
-        this, QGuiApplication::applicationDisplayName(),
-        tr("Cannot load %1, %2")
-            .arg(QDir::toNativeSeparators(fileName), reader.errorString()));
-    return false;
-  }
-
-  // display input image
-  ui->imgDisp_ul->setPixmap(QPixmap::fromImage(originalImage));
-
-  // Otsu's threshold and display
-  orig = cv::imread(fileName.toStdString());
-  autoCanny(&orig, &cannyDst);
-  ui->imgDisp_ll->setPixmap(ASM::cvMatToQPixmap(cannyDst));
-
-  // polygonally approximate and display
-  std::vector<double> otsus_areas =
-      polyApproxFromEdges(&cannyDst, &polyDst, &orig);
-  ui->imgDisp_lr->setPixmap(ASM::cvMatToQPixmap(polyDst));
-
-  ui->tableWidget->resizeColumnsToContents();
-  ui->tableWidget->resizeRowsToContents();
-
-  // blob detect and display
-  std::vector<double> blob_areas = detectBlobs(orig, blobDst);
-  ui->imgDisp_ur->setPixmap(ASM::cvMatToQPixmap(blobDst));
-
-  // display all areas to table (first column egg no, second otsus area, third
-  // blob area)
-  int numRows = std::max(otsus_areas.size(), blob_areas.size());
-  ui->tableWidget->setRowCount(numRows);
-  for (int i = 0; i < numRows; i++) {
-    QTableWidgetItem *item1 = new QTableWidgetItem(QString::number(i + 1));
-    ui->tableWidget->setItem(i, 0, item1);
-
-    if (i < otsus_areas.size()) {
-      QTableWidgetItem *item2 =
-          new QTableWidgetItem(QString::number(otsus_areas[i]));
-      ui->tableWidget->setItem(i, 1, item2);
+    // validate file and read in
+    QImageReader reader(fileName);
+    reader.setAutoTransform(true);
+    const QImage originalImage = reader.read();
+    if (originalImage.isNull()) {
+        QMessageBox::information(
+            this, QGuiApplication::applicationDisplayName(),
+            tr("Cannot load %1, %2")
+                .arg(QDir::toNativeSeparators(fileName), reader.errorString()));
+        return false;
     }
 
-    if (i < blob_areas.size()) {
-      QTableWidgetItem *item3 =
-          new QTableWidgetItem(QString::number(blob_areas[i]));
-      ui->tableWidget->setItem(i, 2, item3);
-    }
-  }
+    orig = cv::imread(fileName.toStdString());
 
-  return true;
+    // Run Canny + Otsu pipeline
+    autoCanny(&orig, &cannyDst);
+    std::vector<double> otsus_areas =
+        polyApproxFromEdges(&cannyDst, &polyDst, &orig);
+    ui->imgDisp_lr->setPixmap(ASM::cvMatToQPixmap(polyDst));
+
+    // Run Blob detection pipeline
+    std::vector<double> blob_areas = detectBlobs(orig, blobDst);
+    ui->imgDisp_ur->setPixmap(ASM::cvMatToQPixmap(blobDst));
+
+    // Build eggMeasurement entries
+    std::vector<eggMeasurement> measurements;
+    int numEggs = std::max(otsus_areas.size(), blob_areas.size());
+    for (int i = 0; i < numEggs; ++i) {
+        eggMeasurement egg;
+        egg.eggLabel = i + 1;
+        egg.otsuArea = (i < otsus_areas.size()) ? otsus_areas[i] : -1.0;
+        egg.blobArea = (i < blob_areas.size()) ? blob_areas[i] : -1.0;
+        egg.computeAvgArea();
+        egg.computeWidths();
+        egg.computeConfidence();  // for now returns dummy value
+        measurements.push_back(egg);
+    }
+
+    // Store into a single-image results map
+    eggResults results;
+    results.imageMeasurements[fileName.toStdString()] = measurements;
+
+    // Display into table
+    displayResultsTable(results, fileName.toStdString());
+
+    ui->tableWidget->resizeColumnsToContents();
+    ui->tableWidget->resizeRowsToContents();
+
+    return true;
+}
+
+void eggsizerML::displayResultsTable(const eggResults &results, const std::string &imageName) {
+    auto it = results.imageMeasurements.find(imageName);
+    if (it == results.imageMeasurements.end()) {
+        QMessageBox::warning(this, "No Data", "No measurement data for selected image.");
+        return;
+    }
+
+    const std::vector<eggMeasurement> &measurements = it->second;
+    ui->tableWidget->setRowCount(static_cast<int>(measurements.size()));
+    ui->tableWidget->setColumnCount(6);  // Adjust the column count to 6 (Remove Label column)
+
+    QStringList headers = {"ID", "Otsu Area", "Blob Area", "Otsu Width", "Blob Width", "Confidence"};
+    ui->tableWidget->setHorizontalHeaderLabels(headers);
+
+    for (int i = 0; i < measurements.size(); ++i) {
+        const eggMeasurement &egg = measurements[i];
+
+        // Display ID, instead of having a separate "Label"
+        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(QString::number(egg.eggLabel)));
+        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(QString::number(egg.otsuArea)));
+        ui->tableWidget->setItem(i, 2, new QTableWidgetItem(QString::number(egg.blobArea)));
+        ui->tableWidget->setItem(i, 3, new QTableWidgetItem(QString::number(egg.otsuWidth)));
+        ui->tableWidget->setItem(i, 4, new QTableWidgetItem(QString::number(egg.blobWidth)));
+        ui->tableWidget->setItem(i, 5, new QTableWidgetItem(QString::number(egg.confidenceScore)));
+    }
 }
 
 void eggsizerML::outputResult(eggResults results, const QString &filename,
@@ -253,30 +320,6 @@ void eggsizerML::outputResult(eggResults results, const QString &filename,
       }
     }
   }
-
-  // if (emitImage) {
-  //   for (size_t i = 0; i < imageNames.size(); i++) {
-  //     QString imagePath = QString::fromStdString(imageNames[i]);
-  //     QString outputImageName =
-  //         QFileInfo(imagePath).completeBaseName() + "_analyze.png";
-
-  //     if (!blobDst.empty()) {
-  //       cv::imwrite(outputImageName.toStdString(), blobDst);
-  //     } else {
-  //       QMessageBox::warning(
-  //           this, tr("Error"),
-  //           tr("Failed to save blob image: %1").arg(outputImageName));
-  //     }
-  //     outputImageName = QFileInfo(imagePath).completeBaseName() +
-  //     "_otsus.png"; if (!polyDst.empty()) {
-  //       cv::imwrite(outputImageName.toStdString(), polyDst);
-  //     } else {
-  //       QMessageBox::warning(
-  //           this, tr("Error"),
-  //           tr("Failed to save otsus image: %1").arg(outputImageName));
-  //     }
-  //   }
-  // }
 
   return;
 }
