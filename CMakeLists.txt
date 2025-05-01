@@ -28,12 +28,12 @@ set(PROJECT_SOURCES
         src/main.cpp
         src/eggsizerml.cpp
         src/eggsizerml.ui
-        src/cannyDetect.cpp
+        src/otsuThreshold.cpp
         src/blobDetect.cpp
         src/measureEdges.cpp
         include/eggsizerml.h
         include/asmOpenCV.h
-        include/cannyDetect.h
+        include/otsuThreshold.h
         include/blobDetect.h
         include/measureEdges.h
 )
@@ -55,10 +55,10 @@ find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 # ----------------------------
 add_executable(accuracy_test
     tests/accuracy_test.cpp
-    src/measurement.cpp
+    src/measureImage.cpp
     src/blobDetect.cpp
     src/measureEdges.cpp
-    src/cannyDetect.cpp
+    src/otsuThreshold.cpp
 )
 
 target_include_directories(accuracy_test PRIVATE
@@ -81,13 +81,13 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(eggsizerML
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        src/measurement.cpp
+        src/measureImage.cpp
         src/blobDetect.cpp
         src/measureEdges.cpp
-        include/measurement.hpp
+        include/measureImage.hpp
         include/blobDetect.h
         include/measureEdges.h
-        include/cannyDetect.h
+        include/otsuThreshold.h
     )
 else()
     if(ANDROID)
