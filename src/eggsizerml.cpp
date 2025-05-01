@@ -167,7 +167,6 @@ bool eggsizerML::loadFile(const QString &fileName) {
   int numEggs = eggMeasurements.size();
   ui->tableWidget->setRowCount(numEggs);
   for (int i = 0; i < numEggs; i++) {
-    std::cout << "Egg " << eggMeasurements[i].eggLabel << std::endl;
     QTableWidgetItem *item1 =
         new QTableWidgetItem(QString::number(eggMeasurements[i].eggLabel));
     QTableWidgetItem *item2 = new QTableWidgetItem(
@@ -199,7 +198,6 @@ void eggsizerML::outputResult(eggResults results, const QString &filename,
   // output formats are as follows:
   // 0 = CSV (default)
   // 1 = JSON
-  outputFormat = 1;
 
   // open file
   QFile file(filename);
@@ -211,8 +209,8 @@ void eggsizerML::outputResult(eggResults results, const QString &filename,
   QTextStream out(&file);
 
   if (outputFormat == 0) { // JSON output
-    out << "Image Name, Egg No., Avg. Area, Otsu's Area, Blob Area, Otsu's "
-           "Confidence, Blob Confidence, Confidence\n";
+    out << "Image Name, Egg No., Avg. Area, Otsu's Area, Blob Area, "
+           "Confidence\n";
   } else if (outputFormat == 1) { // CSV output
     out << "{\n";
     out << "  \"results\": [\n";
@@ -231,10 +229,6 @@ void eggsizerML::outputResult(eggResults results, const QString &filename,
       QString avgArea = QString::number(egg.avgArea, 'f', 4);    // Avg. Area
       QString otsusArea = QString::number(egg.otsuArea, 'f', 2); // Otsus Area
       QString blobArea = QString::number(egg.blobArea, 'f', 2);  // Blob Area
-      QString otsuConfidence =
-          QString::number(egg.otsuConfidence, 'f', 2); // Otsu's Confidence
-      QString blobConfidence =
-          QString::number(egg.blobConfidence, 'f', 2); // Blob Confidence
       QString confidence =
           QString::number(egg.confidence, 'f', 2); // Confidence
 
@@ -244,8 +238,6 @@ void eggsizerML::outputResult(eggResults results, const QString &filename,
         out << avgArea << ",";                           // Avg. Area
         out << otsusArea << ",";                         // Otsus Area
         out << blobArea << ",";                          // Blob Area
-        out << otsuConfidence << ",";                    // Otsu's Confidence
-        out << blobConfidence << ",";                    // Blob Confidence
         out << confidence << "\n";                       // Certainty
       } else if (outputFormat == 1) {                    // JSON output
         out << (!firstEgg ? ",\n" : "") << "    {\n";
@@ -255,8 +247,6 @@ void eggsizerML::outputResult(eggResults results, const QString &filename,
         out << "      \"Avg. Area\": " << avgArea << ",\n";
         out << "      \"Otsus Area\": " << otsusArea << ",\n";
         out << "      \"Blob Area\": " << blobArea << ",\n";
-        out << "      \"Otsu's Confidence\": " << otsuConfidence << ",\n";
-        out << "      \"Blob Confidence\": " << blobConfidence << ",\n";
         out << "      \"Confidence\": " << confidence << "\n";
         out << "    }";
       } else {
