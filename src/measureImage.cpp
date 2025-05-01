@@ -23,8 +23,10 @@ std::vector<eggMeasurement> measureImage(cv::Mat *src, cv::Mat *blobDst,
   for (int i = 0; i < longer_areas; i++) {
     eggMeasurement egg;
     egg.eggLabel = i + 1; // Store the image name as egg label
-    egg.otsuArea = otsuResults[i];
-    egg.blobArea = blobResults[i];
+    egg.otsuArea =
+        i < otsuResults.size() ? otsuResults[i] : 0.0; // Handle empty areas
+    egg.blobArea =
+        i < blobResults.size() ? blobResults[i] : 0.0; // Handle empty blobs
     egg.computeWidths();        // Compute widths from areas
     egg.computeAvgAreaPerEgg(); // Compute average area
     results.push_back(egg);
