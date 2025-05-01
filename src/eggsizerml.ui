@@ -45,9 +45,9 @@
     <widget class="QWidget" name="horizontalLayoutWidget_3">
      <property name="geometry">
       <rect>
-       <x>-1</x>
+       <x>9</x>
        <y>80</y>
-       <width>1031</width>
+       <width>1061</width>
        <height>591</height>
       </rect>
      </property>
@@ -131,47 +131,50 @@
        </layout>
       </item>
       <item>
-      <widget class="QTableWidget" name="tableWidget">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding"/>
-       </property>
-       <attribute name="horizontalHeaderVisible">
-        <bool>true</bool>
-       </attribute>
-       <attribute name="verticalHeaderVisible">
-        <bool>false</bool>
-       </attribute>
-       <column>
-        <property name="text">
-         <string>Egg No.</string>
+       <widget class="QTableWidget" name="tableWidget">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Otsu's Size (mm)</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Blob Size (mm)</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Otsu's Width (mm)</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Blob Width (mm)</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Confidence</string>
-        </property>
-       </column>
-      </widget>
+        <attribute name="horizontalHeaderVisible">
+         <bool>true</bool>
+        </attribute>
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
+        <column>
+         <property name="text">
+          <string>Egg No.</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Otsu's Size (mm)</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Blob Size (mm)</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Otsu's Width (mm)</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Blob Width (mm)</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Confidence</string>
+         </property>
+        </column>
+       </widget>
       </item>
      </layout>
     </widget>
