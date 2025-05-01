@@ -57,39 +57,6 @@
         <item>
          <layout class="QHBoxLayout" name="image_output_u_disp">
           <item>
-           <layout class="QVBoxLayout" name="image_output_ul_disp">
-            <item>
-             <widget class="QLabel" name="imgLabel_ul">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>15</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Uploaded Image</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="imgDisp_ul">
-              <property name="frameShape">
-               <enum>QFrame::Shape::Box</enum>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="scaledContents">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
            <layout class="QVBoxLayout" name="image_output_ur_disp">
             <item>
              <widget class="QLabel" name="imgLabel_ur">
@@ -126,39 +93,6 @@
         </item>
         <item>
          <layout class="QHBoxLayout" name="image_output_l_disp">
-          <item>
-           <layout class="QVBoxLayout" name="image_output_ll_disp">
-            <item>
-             <widget class="QLabel" name="imgLabel_ll">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>15</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Otsu's Processed Image</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="imgDisp_ll">
-              <property name="frameShape">
-               <enum>QFrame::Shape::Box</enum>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="scaledContents">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
           <item>
            <layout class="QVBoxLayout" name="image_output_lr_disp">
             <item>
@@ -197,35 +131,47 @@
        </layout>
       </item>
       <item>
-       <widget class="QTableWidget" name="tableWidget">
-        <property name="maximumSize">
-         <size>
-          <width>300</width>
-          <height>16777215</height>
-         </size>
+      <widget class="QTableWidget" name="tableWidget">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding"/>
+       </property>
+       <attribute name="horizontalHeaderVisible">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <column>
+        <property name="text">
+         <string>Egg No.</string>
         </property>
-        <attribute name="horizontalHeaderVisible">
-         <bool>true</bool>
-        </attribute>
-        <attribute name="verticalHeaderVisible">
-         <bool>false</bool>
-        </attribute>
-        <column>
-         <property name="text">
-          <string>Egg No.</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Otsu's Size (mm)</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Blob Size (mm)</string>
-         </property>
-        </column>
-       </widget>
+       </column>
+       <column>
+        <property name="text">
+         <string>Otsu's Size (mm)</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Blob Size (mm)</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Otsu's Width (mm)</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Blob Width (mm)</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Confidence</string>
+        </property>
+       </column>
+      </widget>
       </item>
      </layout>
     </widget>

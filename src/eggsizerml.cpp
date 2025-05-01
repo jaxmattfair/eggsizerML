@@ -18,14 +18,8 @@ eggsizerML::eggsizerML(QWidget *parent)
   ui->setupUi(this);
   int fixedImageWidth = 400; // Adjust to match your design
 
-  ui->imgDisp_ul->setMinimumWidth(fixedImageWidth);
-  ui->imgDisp_ul->setMaximumWidth(fixedImageWidth);
-
   ui->imgDisp_ur->setMinimumWidth(fixedImageWidth);
   ui->imgDisp_ur->setMaximumWidth(fixedImageWidth);
-
-  ui->imgDisp_ll->setMinimumWidth(fixedImageWidth);
-  ui->imgDisp_ll->setMaximumWidth(fixedImageWidth);
 
   ui->imgDisp_lr->setMinimumWidth(fixedImageWidth);
   ui->imgDisp_lr->setMaximumWidth(fixedImageWidth);
@@ -153,13 +147,10 @@ bool eggsizerML::loadFile(const QString &fileName) {
     return false;
   }
 
-  // display input image
-  ui->imgDisp_ul->setPixmap(QPixmap::fromImage(originalImage));
 
   // Otsu's threshold and display
   orig = cv::imread(fileName.toStdString());
   autoCanny(&orig, &cannyDst);
-  ui->imgDisp_ll->setPixmap(ASM::cvMatToQPixmap(cannyDst));
 
   // polygonally approximate and display
   std::vector<double> otsus_areas =
@@ -178,22 +169,42 @@ bool eggsizerML::loadFile(const QString &fileName) {
   int numRows = std::max(otsus_areas.size(), blob_areas.size());
   ui->tableWidget->setRowCount(numRows);
   for (int i = 0; i < numRows; i++) {
-    QTableWidgetItem *item1 = new QTableWidgetItem(QString::number(i + 1));
-    ui->tableWidget->setItem(i, 0, item1);
+      QTableWidgetItem *item1 = new QTableWidgetItem(QString::number(i + 1));
+      ui->tableWidget->setItem(i, 0, item1);
 
-    if (i < otsus_areas.size()) {
-      QTableWidgetItem *item2 =
-          new QTableWidgetItem(QString::number(otsus_areas[i]));
-      ui->tableWidget->setItem(i, 1, item2);
-    }
+      if (i < otsus_areas.size()) {
+          QTableWidgetItem *item2 =
+              new QTableWidgetItem(QString::number(otsus_areas[i]));
+          ui->tableWidget->setItem(i, 1, item2);
+      }
 
-    if (i < blob_areas.size()) {
-      QTableWidgetItem *item3 =
-          new QTableWidgetItem(QString::number(blob_areas[i]));
-      ui->tableWidget->setItem(i, 2, item3);
-    }
+      if (i < blob_areas.size()) {
+          QTableWidgetItem *item3 =
+              new QTableWidgetItem(QString::number(blob_areas[i]));
+          ui->tableWidget->setItem(i, 2, item3);
+      }
+
+      // Now, let's calculate and display the widths and confidence score
+      eggMeasurement egg;
+      egg.otsuArea = (i < otsus_areas.size()) ? otsus_areas[i] : -1.0;
+      egg.blobArea = (i < blob_areas.size()) ? blob_areas[i] : -1.0;
+      egg.computeWidths();  // Compute the widths from areas
+      egg.computeConfidence();  // Compute the confidence score
+
+      // Display the widths and confidence score
+      QTableWidgetItem *item4 = new QTableWidgetItem(QString::number(egg.otsuWidth, 'f', 2));
+      ui->tableWidget->setItem(i, 3, item4);
+
+      QTableWidgetItem *item5 = new QTableWidgetItem(QString::number(egg.blobWidth, 'f', 2));
+      ui->tableWidget->setItem(i, 4, item5);
+
+      QTableWidgetItem *item6 = new QTableWidgetItem(QString::number(egg.confidenceScore, 'f', 2));
+      ui->tableWidget->setItem(i, 5, item6);
   }
-
+  QHeaderView *header = ui->tableWidget->horizontalHeader();
+  header->setSectionResizeMode(QHeaderView::Stretch);
+  ui->tableWidget->resizeColumnsToContents();
+  ui->tableWidget->resizeRowsToContents();
   return true;
 }
 

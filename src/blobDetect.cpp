@@ -25,14 +25,20 @@ std::vector<double> detectBlobs(const cv::Mat &src, cv::Mat &dst, float pixToMM)
     std::vector<cv::KeyPoint> keypoints;
     detector->detect(gray, keypoints);
 
-    // Draw detected blobs
+    // Draw detected blobs and labels
     dst = src.clone();
     cv::drawKeypoints(src, keypoints, dst, cv::Scalar(0, 0, 255), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
 
-    // return vector of blob areas
+    // Return blob areas and annotate with numbers
     std::vector<double> blob_areas;
-    for (const auto &keypoint : keypoints) {
-        blob_areas.push_back((keypoint.size * keypoint.size * 3.14) / (4 * pixToMM));
+    for (size_t i = 0; i < keypoints.size(); ++i) {
+        const auto &kp = keypoints[i];
+        blob_areas.push_back((kp.size * kp.size * 3.14) / (4 * pixToMM));
+
+        // Draw index number at blob center
+        cv::Point center(static_cast<int>(kp.pt.x), static_cast<int>(kp.pt.y));
+        cv::putText(dst, std::to_string(i + 1), center,
+                    cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255, 255, 0), 2);
     }
 
     return blob_areas;
