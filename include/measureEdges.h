@@ -3,7 +3,9 @@
 
 // opencv inclusions
 #include <opencv2/imgproc/imgproc.hpp>
+#include <vector>
 
-std::vector<double> polyApproxFromEdges(cv::Mat* thresholded, cv::Mat* orig, cv::Mat* dst, float pixToMM=100);
+std::vector<double> polyApproxFromEdges(cv::Mat *src, cv::Mat *dst,
+                                        cv::Mat *orig, float pixToMM = 100);
 
 #endif // MEASUREEDGES_H

@@ -36,6 +36,16 @@ jobs:
           cd C:\
           choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --apply-install-arguments-to-dependencies
           choco install opencv -y --install-args="'/DIR=C:\tools'"
+
+            choco install git -y
+
+            git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+            C:\vcpkg\bootstrap-vcpkg.bat
+
+            C:\vcpkg\vcpkg install boost-unit-test-framework:x64-windows
+
+            C:\vcpkg\vcpkg integrate install
+
           python -m pip install -U pip
           python -m pip install aqtinstall
           aqt install-qt windows desktop 6.8.2 win64_msvc2022_64 -m all
@@ -62,14 +72,25 @@ jobs:
         with:
           msbuild-version: 17.0
 
+      - name: Setup vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git C:/vcpkg
+          C:/vcpkg/bootstrap-vcpkg.bat
+
+      - name: Install Boost with vcpkg
+        run: |
+          C:/vcpkg/vcpkg install boost
+
       - name: Build MSVC
         if: matrix.os == 'windows-latest'
         run: |
-          set OpenCV_DIR=C:\tools\opencv\build
+
           mkdir build
           cd build
-          cmake ..
-          msbuild eggsizerML.sln /p:Configuration=Release
+
+          cmake -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -DOpenCV_DIR=C:/tools/opencv/build -DBOOST_ROOT=C:/vcpkg/installed/x64-windows -DBoost_INCLUDE_DIR=C:/vcpkg/installed/x64-windows/include -DBoost_LIBRARY_DIR=C:/vcpkg/installed/x64-windows/lib -DBoost_USE_STATIC_LIBS=OFF -DBoost_USE_DYNAMIC_LIBS=ON -DBoost_COMPONENTS=unit_test_framework ..
+          cmake --build . --config Release
+
 
       - name: Package Windows Deps
         if: matrix.os == 'windows-latest'

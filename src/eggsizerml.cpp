@@ -1,17 +1,14 @@
 #include "../include/eggsizerml.h"
 #include "../include/asmOpenCV.h"
-#include "../include/blobDetect.h"
-#include "../include/cannyDetect.h"
-#include "../include/measureEdges.h"
+#include "../include/measureImage.hpp"
 #include "../include/ui_eggsizerml.h"
 #include <opencv2/core/mat.hpp>
 
 // GLOBAL APPLICATION DATA STORAGE
 //(keep this to a MINIMUM)
-cv::Mat orig;     // original image
-cv::Mat cannyDst; // canny-detected image
-cv::Mat polyDst;  // polygonally-approximated image
-cv::Mat blobDst;  // blob-detected image
+cv::Mat orig;    // original image
+cv::Mat polyDst; // polygonally-approximated image
+cv::Mat blobDst; // blob-detected image
 
 eggsizerML::eggsizerML(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::eggsizerML) {
@@ -155,43 +152,43 @@ bool eggsizerML::loadFile(const QString &fileName) {
 
   // display input image
   ui->imgDisp_ul->setPixmap(QPixmap::fromImage(originalImage));
-
-  // Otsu's threshold and display
   orig = cv::imread(fileName.toStdString());
-  autoCanny(&orig, &cannyDst);
-  ui->imgDisp_ll->setPixmap(ASM::cvMatToQPixmap(cannyDst));
 
-  // polygonally approximate and display
-  std::vector<double> otsus_areas =
-      polyApproxFromEdges(&cannyDst, &polyDst, &orig);
+  // measure image and display
+  std::vector<eggMeasurement> eggMeasurements =
+      measureImage(&orig, &blobDst, &polyDst);
+
+  // update display images & resize table
   ui->imgDisp_lr->setPixmap(ASM::cvMatToQPixmap(polyDst));
-
-  ui->tableWidget->resizeColumnsToContents();
-  ui->tableWidget->resizeRowsToContents();
-
-  // blob detect and display
-  std::vector<double> blob_areas = detectBlobs(orig, blobDst);
   ui->imgDisp_ur->setPixmap(ASM::cvMatToQPixmap(blobDst));
 
-  // display all areas to table (first column egg no, second otsus area, third
-  // blob area)
-  int numRows = std::max(otsus_areas.size(), blob_areas.size());
-  ui->tableWidget->setRowCount(numRows);
-  for (int i = 0; i < numRows; i++) {
-    QTableWidgetItem *item1 = new QTableWidgetItem(QString::number(i + 1));
+  // update table with egg measurements
+  // #NOTE: UPDATE TABLE HEADERS BASED ON USER CONFIG HERE
+  int numEggs = eggMeasurements.size();
+  ui->tableWidget->setRowCount(numEggs);
+  for (int i = 0; i < numEggs; i++) {
+    std::cout << "Egg " << eggMeasurements[i].eggLabel << std::endl;
+    QTableWidgetItem *item1 =
+        new QTableWidgetItem(QString::number(eggMeasurements[i].eggLabel));
+    QTableWidgetItem *item2 = new QTableWidgetItem(
+        QString::number(eggMeasurements[i].otsuArea, 'f', 2));
+    QTableWidgetItem *item3 = new QTableWidgetItem(
+        QString::number(eggMeasurements[i].blobArea, 'f', 2));
+    QTableWidgetItem *item4 = new QTableWidgetItem(
+        QString::number(eggMeasurements[i].avgArea, 'f', 2));
+    QTableWidgetItem *item5 = new QTableWidgetItem(
+        QString::number(eggMeasurements[i].confidenceScore, 'f', 2));
+    QTableWidgetItem *item6 = new QTableWidgetItem(
+        QString::number(eggMeasurements[i].otsuWidth, 'f', 2));
+    QTableWidgetItem *item7 = new QTableWidgetItem(
+        QString::number(eggMeasurements[i].blobWidth, 'f', 2));
     ui->tableWidget->setItem(i, 0, item1);
-
-    if (i < otsus_areas.size()) {
-      QTableWidgetItem *item2 =
-          new QTableWidgetItem(QString::number(otsus_areas[i]));
-      ui->tableWidget->setItem(i, 1, item2);
-    }
-
-    if (i < blob_areas.size()) {
-      QTableWidgetItem *item3 =
-          new QTableWidgetItem(QString::number(blob_areas[i]));
-      ui->tableWidget->setItem(i, 2, item3);
-    }
+    ui->tableWidget->setItem(i, 1, item2);
+    ui->tableWidget->setItem(i, 2, item3);
+    ui->tableWidget->setItem(i, 3, item4);
+    ui->tableWidget->setItem(i, 4, item5);
+    ui->tableWidget->setItem(i, 5, item6);
+    ui->tableWidget->setItem(i, 6, item7);
   }
 
   return true;
@@ -212,8 +209,6 @@ void eggsizerML::outputResult(eggResults results, const QString &filename,
   }
   QTextStream out(&file);
   // CSV output
-  // write headers (Image Name, Egg no., Avg. Area, Otsus Area, Blob Area,
-  // Confidence)
   out << "Image Name, Egg No., Avg. Area, Otsus Area, Blob Area, Confidence\n";
 
   // for each pair in results object
@@ -320,15 +315,9 @@ void eggsizerML::on_saveResults_btn_clicked() {
     }
 
     // Process the image
-    cannyDst.release();
     polyDst.release();
     blobDst.release();
 
-    autoCanny(&orig, &cannyDst);
-    std::vector<double> otsus_areas =
-        polyApproxFromEdges(&cannyDst, &polyDst, &orig);
-    std::vector<double> blob_areas = detectBlobs(orig, blobDst);
-    int longer_areas = std::max(otsus_areas.size(), blob_areas.size());
     std::string img_name =
         filePath
             .section('/', -1)  // Get the last section after '/'
@@ -336,21 +325,12 @@ void eggsizerML::on_saveResults_btn_clicked() {
             .toStdString();
 
     // Store results
-    for (int i = 0; i < longer_areas; i++) {
-      eggMeasurement egg;
-      egg.eggLabel = i + 1; // Store the image name as egg label
-      egg.otsuArea = otsus_areas.size() > i ? otsus_areas[i] : -1.0;
-      egg.blobArea = blob_areas.size() > i ? blob_areas[i] : -1.0;
-      egg.computeWidths();  // Compute widths from areas
-      egg.computeAvgArea(); // Compute average area
-
-      // Store the egg measurement in results
-      results.imageMeasurements[img_name].push_back(egg);
-    }
+    results.imageMeasurements[img_name] =
+        measureImage(&orig, &blobDst, &polyDst);
     results.computeConfidence();
   }
 
-  // store results in Downloadsresults.csv
+  // store results in Downloads/results.csv
   QString resultsFile = QFileDialog::getSaveFileName(
       this, tr("Save Results"),
       QStandardPaths::writableLocation(QStandardPaths::DownloadLocation) +
