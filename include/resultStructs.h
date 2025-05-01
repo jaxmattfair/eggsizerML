@@ -8,7 +8,9 @@ struct eggMeasurement {
   double otsuArea;
   double blobArea;
   double avgArea;
-  double confidenceScore;
+  double otsuConfidence;
+  double blobConfidence;
+  double confidence;
   double otsuWidth;
   double blobWidth;
   double avgWidth;
@@ -50,9 +52,6 @@ struct eggMeasurement {
       avgArea = (otsuArea + blobArea) / 2.0; // Average of both areas
     }
   }
-
-  // Compute confidence score based on mean & std. dev of eggs in image
-  void computeConfidence() { confidenceScore = 0.5; }
 };
 
 struct eggResults {
@@ -64,7 +63,19 @@ struct eggResults {
   void computeConfidence() {
     for (auto &pair : imageMeasurements) {
       for (eggMeasurement &egg : pair.second) {
-        egg.computeConfidence();
+        if (!(egg.otsuArea >= 0) || !(egg.blobArea >= 0)) {
+          egg.otsuConfidence = 0.0; // Invalid areas
+          egg.blobConfidence = 0.0; // Invalid areas
+        } else {
+          egg.otsuConfidence =
+              1.0 - abs(egg.otsuArea - egg.avgArea) / egg.avgArea;
+          egg.blobConfidence =
+              1.0 - abs(egg.blobArea - egg.avgArea) / egg.avgArea;
+          // clamp confidence to [0, 1]
+          egg.otsuConfidence = std::max(0.0, std::min(1.0, egg.otsuConfidence));
+          egg.blobConfidence = std::max(0.0, std::min(1.0, egg.blobConfidence));
+          egg.confidence = (egg.otsuConfidence + egg.blobConfidence) / 2.0;
+        }
       }
     }
   }

@@ -177,7 +177,7 @@ bool eggsizerML::loadFile(const QString &fileName) {
     QTableWidgetItem *item4 = new QTableWidgetItem(
         QString::number(eggMeasurements[i].avgArea, 'f', 2));
     QTableWidgetItem *item5 = new QTableWidgetItem(
-        QString::number(eggMeasurements[i].confidenceScore, 'f', 2));
+        QString::number(eggMeasurements[i].confidence, 'f', 2));
     QTableWidgetItem *item6 = new QTableWidgetItem(
         QString::number(eggMeasurements[i].otsuWidth, 'f', 2));
     QTableWidgetItem *item7 = new QTableWidgetItem(
@@ -199,6 +199,7 @@ void eggsizerML::outputResult(eggResults results, const QString &filename,
   // output formats are as follows:
   // 0 = CSV (default)
   // 1 = JSON
+  outputFormat = 1;
 
   // open file
   QFile file(filename);
@@ -208,8 +209,16 @@ void eggsizerML::outputResult(eggResults results, const QString &filename,
     return;
   }
   QTextStream out(&file);
-  // CSV output
-  out << "Image Name, Egg No., Avg. Area, Otsus Area, Blob Area, Confidence\n";
+
+  if (outputFormat == 0) { // JSON output
+    out << "Image Name, Egg No., Avg. Area, Otsu's Area, Blob Area, Otsu's "
+           "Confidence, Blob Confidence, Confidence\n";
+  } else if (outputFormat == 1) { // CSV output
+    out << "{\n";
+    out << "  \"results\": [\n";
+  }
+
+  int firstEgg = 1;
 
   // for each pair in results object
   for (auto &pair : results.imageMeasurements) {
@@ -222,8 +231,12 @@ void eggsizerML::outputResult(eggResults results, const QString &filename,
       QString avgArea = QString::number(egg.avgArea, 'f', 4);    // Avg. Area
       QString otsusArea = QString::number(egg.otsuArea, 'f', 2); // Otsus Area
       QString blobArea = QString::number(egg.blobArea, 'f', 2);  // Blob Area
-      QString confidenceScore =
-          QString::number(egg.confidenceScore, 'f', 2); // Confidence
+      QString otsuConfidence =
+          QString::number(egg.otsuConfidence, 'f', 2); // Otsu's Confidence
+      QString blobConfidence =
+          QString::number(egg.blobConfidence, 'f', 2); // Blob Confidence
+      QString confidence =
+          QString::number(egg.confidence, 'f', 2); // Confidence
 
       if (outputFormat == 0) {                           // CSV output
         out << QString::fromStdString(imageName) << ","; // Image Name
@@ -231,23 +244,36 @@ void eggsizerML::outputResult(eggResults results, const QString &filename,
         out << avgArea << ",";                           // Avg. Area
         out << otsusArea << ",";                         // Otsus Area
         out << blobArea << ",";                          // Blob Area
-        out << confidenceScore << "\n";                  // Certainty
+        out << otsuConfidence << ",";                    // Otsu's Confidence
+        out << blobConfidence << ",";                    // Blob Confidence
+        out << confidence << "\n";                       // Certainty
       } else if (outputFormat == 1) {                    // JSON output
-        out << "{\n";
-        out << "  \"Image Name\": \"" << QString::fromStdString(imageName)
+        out << (!firstEgg ? ",\n" : "") << "    {\n";
+        out << "      \"Image Name\": \"" << QString::fromStdString(imageName)
             << "\",\n";
-        out << "  \"Egg No.\": " << eggNo << ",\n";
-        out << "  \"Avg. Area\": " << avgArea << ",\n";
-        out << "  \"Otsus Area\": " << otsusArea << ",\n";
-        out << "  \"Blob Area\": " << blobArea << ",\n";
-        out << "  \"Confidence\": " << confidenceScore << "\n";
-        out << "}\n";
+        out << "      \"Egg No.\": " << eggNo << ",\n";
+        out << "      \"Avg. Area\": " << avgArea << ",\n";
+        out << "      \"Otsus Area\": " << otsusArea << ",\n";
+        out << "      \"Blob Area\": " << blobArea << ",\n";
+        out << "      \"Otsu's Confidence\": " << otsuConfidence << ",\n";
+        out << "      \"Blob Confidence\": " << blobConfidence << ",\n";
+        out << "      \"Confidence\": " << confidence << "\n";
+        out << "    }";
       } else {
         QMessageBox::warning(this, tr("Error"),
                              tr("Invalid output format selected"));
       }
+      firstEgg = 0;
     }
   }
+
+  if (outputFormat == 1) { // JSON output
+    out << "\n  ]\n";
+    out << "}\n";
+  }
+
+  // close file
+  file.close();
 
   // if (emitImage) {
   //   for (size_t i = 0; i < imageNames.size(); i++) {
