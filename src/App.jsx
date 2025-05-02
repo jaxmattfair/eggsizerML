@@ -1,332 +1,522 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
+import "./App.css"
+import JSZip from "jszip";
+// -----------------------------------------------------------------------------
+// EggSizer CV (Web) – batch‑first workflow
+// • When a file set is chosen we synchronously process **every** image, build one
+//   combined table, and then show the first image.
+// • Table rows = all eggs across all images (Image column keeps the filename).
+// • Previous / Next only changes which image is drawn, table stays global.
+// • Deleting a row removes it from the master table **and** redraws whichever
+//   image is on screen if the egg belonged to it.
+// • Export CSV dumps the full combined table.
+// -----------------------------------------------------------------------------
 
-/**
- * EggSizer – a browser‑based re‑implementation of the original Qt/OpenCV C++ tool.
- *
- * Key port notes – thresholds & constants are kept identical to the C++ version:
- *   BLOB_MIN_AREA   = 5 000   px²
- *   BLOB_MAX_AREA   = 500 000 px²
- *   POLY_MIN_AREA   = 18 000  px²
- *   POLY_MAX_AREA   = 700 000 px²
- *   PIXELS_PER_MM²  = 100     (pixToMM in the C++ code)
- *
- * The processing pipeline mirrors the original source files one‑to‑one:
- *   1. autoCanny      →   Gaussian(5×5)  +  Otsu threshold  (cannyDetect.cpp)
- *   2. polyApprox     →   findContours + approxPolyDP        (measureEdges.cpp)
- *   3. detectBlobs    →   connectedComponentsWithStats       (blobDetect.cpp)
- *
- * OpenCV.js does not ship SimpleBlobDetector, therefore we approximate the blob
- * detector with connected‑components + area filtering so that the numeric
- * results remain comparable.
- */
-
-const BLOB_MIN_AREA = 2000;
-const BLOB_MAX_AREA = 1000000;
-const POLY_MIN_AREA = 18000;
-const POLY_MAX_AREA = 700000;
-const PIXELS_PER_MM = 100; // “pixToMM” in the original code
-
-const CANVAS_SIZE = { width: "45vw", height: "40vh", border: "1px solid #FFF "}; // CSS units for canvas size
+const BLOB_MIN_AREA = 5000;
+const BLOB_MAX_AREA = 500000;
+const POLY_MIN_AREA = 5000;
+const POLY_MAX_AREA = 500000;
+const PIXELS_PER_MM = 100;
+const CANVAS_STYLE  = { width: "100%", height: "100%", display: "block", backgroundColor: "#000" };
 
 
 export default function EggSizerApp() {
-  // add opencv.js script tag to the document
+  /* -------------------- load OpenCV + blob detector -------------------- */
+  const [cvReady, setCvReady] = useState(false);
   useEffect(() => {
-    const script1 = document.createElement("script");
-    script1.src = import.meta.env.BASE_URL + "opencv.js";
-    script1.async = true;
-    script1.onload = () => {
-      console.log("OpenCV.js loaded");
-      // OpenCV is ready to use
+    const core = document.createElement("script");
+    core.src = import.meta.env.BASE_URL + "opencv.js";
+    core.async = true;
+    core.onload = () => {
       cv.onRuntimeInitialized = () => {
-        console.log("OpenCV is ready");
+        const blob = document.createElement("script");
+        blob.src = import.meta.env.BASE_URL + "opencvblobdetector.js";
+        blob.async = true;
+        blob.onload = () => setCvReady(true);
+        document.body.appendChild(blob);
       };
     };
-
-    const script2 = document.createElement("script");
-    script2.src = import.meta.env.BASE_URL + "opencvblobdetector.js";
-    script2.async = true;
-    script2.onload = () => {
-      console.log("OpenCV blob detector loaded");
-      // OpenCV blob detector is ready to use
-    }
-    document.body.appendChild(script1);
-    document.body.appendChild(script2);
+    document.body.appendChild(core);
   }, []);
 
-  // --- state ---------------------------------------------------------------
-  const [files,   setFiles]                 = useState([]);      // FileList
-  const [index,   setIndex]                 = useState(0);       // current image idx
-  const [results, setResults]               = useState([]);      // accumulated CSV rows
+  /* --------------------------- state / refs --------------------------- */
+  const [files, setFiles] = useState([]);   // File[]
+  const [idx, setIdx] = useState(0);    // which image displayed
+  const [rows, setRows] = useState([]);   // ALL egg rows across images
+  const [bases, setBases] = useState({});   // {index:{blob:Mat,poly:Mat}}
+  const [processing, setProcessing] = useState(false);
+  const [pxPerMm, setPxPerMm] = useState(PIXELS_PER_MM);
 
-  // --- refs to <canvas> ----------------------------------------------------
-  const canvUL = useRef(); // uploaded image (upper‑left)
-  const canvUR = useRef(); // blob processed   (upper‑right)
-  const canvLL = useRef(); // Otsu processed   (lower‑left)
-  const canvLR = useRef(); // polygon approx   (lower‑right)
-
-  let processedFiles = [];
-
-  // --- helpers -------------------------------------------------------------
-  const readImageToMat = (file, cb) => {
-    const img = new Image();
-    img.onload = () => {
-      let mat = new cv.Mat();
-      mat = cv.imread(img);
-      cb(mat);
-    };
-    img.src = URL.createObjectURL(file);
+  const canvBlob = useRef();
+  const canvPoly = useRef();
+  
+  const handlePxPerMmChange = (e) => {
+    const value = e.target.value;
+    if(value < 1) return;
+    setPxPerMm(value);
   };
 
-  const grayscaleImage = (src) => {
-    const gray = new cv.Mat();
-    if (src.channels() > 1) cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-    else src.copyTo(gray);
-    return gray;
+  /* --------------------------- helpers -------------------------------- */
+  const toGray = (src) => {
+    const g = new cv.Mat();
+    src.channels() > 1 ? cv.cvtColor(src, g, cv.COLOR_RGBA2GRAY) : src.copyTo(g);
+    return g;
+  };
+
+  const calcConfidence = (blobArea, avgArea) => {
+    if(blobArea === "NONE" || avgArea === "NONE") return 0.5;
+    const blob = Number(blobArea);
+    const avg = Number(avgArea);
+    const confidence = 1 - Math.pow(Math.abs(blob - avg) / avg, 0.5);
+    return Math.max(0, Math.min(1, confidence));
   }
 
   const autoCanny = (src) => {
-    const gray = grayscaleImage(src);
-    const blurred = new cv.Mat();
+    const gray = toGray(src);
+    const blur = new cv.Mat();
     const dst = new cv.Mat();
-
-    cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0.33, 0, cv.BORDER_DEFAULT);
-    cv.threshold(blurred, dst, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
-
-    gray.delete(); blurred.delete();
+    cv.GaussianBlur(gray, blur, new cv.Size(5, 5), 0.33);
+    cv.threshold(blur, dst, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
+    gray.delete(); blur.delete();
     return dst;
   };
+
 
   const polyApprox = (thresh, orig) => {
     const contours = new cv.MatVector();
     const hierarchy = new cv.Mat();
+    
     cv.findContours(thresh, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
-
-    const dst = orig.clone();
-    const areas = [];
-
-    let eggcnt = 0;
-    for (let i = 0; i < contours.size(); ++i) {
+    
+    const eggs=[];
+    
+    for(let i=0; i < contours.size(); i++){
       const cnt = contours.get(i);
-      const peri = cv.arcLength(cnt, true);
       const approx = new cv.Mat();
-      cv.approxPolyDP(cnt, approx, 0.005 * peri, true);
-      const area = cv.contourArea(approx, false);
-
-      // calculate the pixel X,Y center of the contour
-      const M = cv.moments(cnt, false);
-      const cx = Math.floor(M.m10 / M.m00);
-      const cy = Math.floor(M.m01 / M.m00);
-      const center = new cv.Point(cx, cy);
-
-
-      if (area >= POLY_MIN_AREA && area <= POLY_MAX_AREA) {
-        eggcnt++;
-        areas.push(area / PIXELS_PER_MM);
-        const colour = new cv.Scalar(0, 150, 0, 255);
-        const tmpVec = new cv.MatVector();
-        tmpVec.push_back(approx);
-        cv.drawContours(dst, tmpVec, -1, colour, 2);
-        cv.putText(dst, `${eggcnt}`, center, cv.FONT_HERSHEY_SIMPLEX, 1, colour, 4);
-        tmpVec.delete(); 
-        //colour.delete();
+      cv.approxPolyDP(cnt, approx, 0.005*cv.arcLength(cnt,true), true);
+      const area = cv.contourArea(approx);
+      const m = cv.moments(cnt);
+      // extract vertices
+      if(area < POLY_MIN_AREA || area > POLY_MAX_AREA) { cnt.delete(); approx.delete(); continue; }
+      
+      const pts=[];
+      for(let j=0;j<approx.rows;j++) { 
+        const pt = approx.intPtr(j); 
+        pts.push({x: pt[0], y: pt[1]}); 
       }
-      cnt.delete(); approx.delete();
+      //console.log(`Number of vertices: ${pts.length}`);
+      eggs.push(
+        { 
+          center:{
+            x: m.m10/m.m00,
+            y: m.m01/m.m00
+          }, 
+          area:area/PIXELS_PER_MM, 
+          polyPts:pts 
+        }
+      );
+      
+      cnt.delete(); 
+      approx.delete();
     }
     contours.delete(); hierarchy.delete();
-    return { dst, areas };
+    return eggs;
   };
 
   const detectBlobs = (src) => {
+    const gray = toGray(src);
+    const bin = new cv.Mat();
+    cv.threshold(gray, bin, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
+    const centers = findBlobs(gray, bin, {
+      faster:true, 
+      filterByArea:true, 
+      minArea:BLOB_MIN_AREA,
+      maxArea:BLOB_MAX_AREA
+    });
 
-    let params = {
-      faster: true,
-      filterByArea: true,
-      minArea: BLOB_MIN_AREA,
-      maxArea: BLOB_MAX_AREA,
-      filterByCircularity: false,
-      filterByConvexity: false,
-      filterByInertia: false,
-      filterByColor: false,
-      thresholdStep: 10,
-      minThreshold: 0,
-      maxThreshold: 255,
-      minRepeatability: 2,
-      minDistBetweenBlobs: 10,
+    gray.delete(); bin.delete();
+
+    return centers.map(
+      c => (
+        { 
+          center: {
+            x: c.location.x, 
+            y:c.location.y
+          }, 
+          radius: c.radius, 
+          area: Math.PI * c.radius * c.radius / PIXELS_PER_MM 
+        }
+      )
+    );
+  };
+
+  /* overlays */
+  const drawBlobOverlay=(mat,list)=>{
+    list.forEach(e => {
+      let color = e.removed ? new cv.Scalar(255,0,0,255) : new cv.Scalar(0,150,0,255);
+      cv.circle(mat, new cv.Point(e.blobcenter.x, e.blobcenter.y), e.radius || 30, color, 2);
+      cv.putText(mat, String(e.id), new cv.Point(e.blobcenter.x,e.blobcenter.y), cv.FONT_HERSHEY_SIMPLEX, 1, color, 3);
+    });
+  };
+
+
+  const drawPolyOverlay=(mat,list)=>{
+    list.forEach(e=>{
+      let color = e.removed ? new cv.Scalar(255,0,0,255) : new cv.Scalar(0,150,0,255);
+      if(e.polyPts){
+        for(let i=0;i<e.polyPts.length;i++){
+          const p1=e.polyPts[i]; const p2=e.polyPts[(i+1)%e.polyPts.length];
+          cv.line(mat,new cv.Point(p1.x,p1.y),new cv.Point(p2.x,p2.y), color,2);
+        }
+      }
+      cv.putText(
+        mat,
+        String(e.id),
+        new cv.Point(e.polycenter.x, e.polycenter.y),
+        cv.FONT_HERSHEY_SIMPLEX,
+        1,
+        color,
+        3);
+    });
+  };
+
+
+  /* ------------------ batch process all files -------------------------- */
+  const processAll = async (fileList) => {
+    setProcessing(true); 
+    const newRows = []; 
+    const newBases = {};
+
+    for(let fi=0; fi<fileList.length; fi++) {
+      const file = fileList[fi];
+      await new Promise( (res) => {
+        const img = new Image();
+
+        img.onload = () => {
+          const orig = cv.imread(img);
+          const otsu = autoCanny(orig);
+          const polyList = polyApprox(otsu,orig);
+          const blobList = detectBlobs(orig);
+          const len = Math.max(polyList.length,blobList.length);
+          const combined = [];
+          for(let i=0; i<len; i++){
+            const p = polyList[i];
+            const b = blobList[i];
+            const id=i+1;
+            const areaO = p?.area||"NONE";
+            const areaB = b?.area.toFixed(2)||"NONE";
+            const avg = areaO && areaB ? ((areaO+Number(areaB))/2).toFixed(2) : (areaO ? areaO : areaB);
+            const row = {
+              key: `${file.name}-${id}`,
+              img: file.name,
+              id,
+              otsu: areaO, 
+              blob: areaB, 
+              polycenter: p?.center ?? {x:0, y:0},
+              blobcenter: b?.center ?? {x:0, y:0},
+              avg,
+              radius: b?.radius || 30,
+              imgIdx: fi,
+              polyPts: p?.polyPts || [],
+              removed: false,
+              confidence: calcConfidence(areaB, avg)
+            };
+            newRows.push(row);
+            combined.push(row);
+          }
+          const blobMat = orig.clone();
+          const polyMat = orig.clone();
+          drawBlobOverlay(blobMat, combined); 
+          drawPolyOverlay(polyMat, combined);
+          newBases[fi] = {
+            blob:blobMat, poly:polyMat, orig:orig
+          };
+          otsu.delete(); res();
+        }; 
+        img.src=URL.createObjectURL(file);
+      });
+    }
+    setRows(newRows);
+    setBases(newBases); 
+    setProcessing(false);
+  };
+
+  /* ------------------ handle file selection --------------------------- */
+  const onFileChange=(e)=>{const sel=Array.from(e.target.files); if(!sel.length) return; setFiles(sel); setIdx(0); setRows([]); setBases({}); processAll(sel);};
+
+  /* ------------------ redraw current image ---------------------------- */
+  useEffect(()=>{if(!(idx in bases)) return; cv.imshow(canvBlob.current,bases[idx].blob); cv.imshow(canvPoly.current,bases[idx].poly);},[idx,bases]);
+
+  /* ------------------ deletion update --------------------------- */
+  const removeRow=(key)=>{
+    console.log(`Removing row ${key}`);
+
+
+
+    /*
+    // remove from rows
+    const newRows = rows.filter(r => r.key !== key);
+    // every key is unique, so get the one that matches
+    let foundRow = rows.find(r => r.key === key);
+    foundRow.removed = !foundRow.removed; // we can use the same logic for unremoving a row
+    newRows.push(foundRow); // add it back to the list
+    setRows(newRows);
+    */
+
+    const newRows = rows.map(r => {
+      if(r.key === key) {
+        r.removed = !r.removed; // we can use the same logic for unremoving a row
+      }
+      return r;
+    });
+
+    // now, we need to update the bases using base.orig, and then redrawing the blob and poly without the deleted egg
+    const base = bases[idx];
+    if(!base) return;
+
+    const orig = base.orig.clone();
+    
+    // we shouldn't need to redo the poly and blob detection, but we do need to remove the egg from the image
+    // the row already contains the center and radius for blob, and the center and polyPts for poly
+
+    bases[idx].blob.delete();
+    bases[idx].poly.delete();
+
+    bases[idx].blob = orig.clone();
+    bases[idx].poly = orig.clone();
+
+    let thisimageRows = newRows.filter(r => r.imgIdx === idx);
+
+    console.log('a');
+    const blobList = thisimageRows.map(r => ({
+      center: {x: r.blobcenter.x, y:r.blobcenter.y},
+      radius: r.radius,
+    }));
+    console.log('b');
+    const polyList = thisimageRows.map(r => ({
+      center: {x: r.polycenter.x, y: r.polycenter.y},
+      polyPts: r.polyPts,
+    }));
+    console.log('c');
+    drawBlobOverlay(bases[idx].blob, thisimageRows);
+    console.log('d');
+    drawPolyOverlay(bases[idx].poly, thisimageRows);
+    console.log('e');
+    cv.imshow(canvBlob.current, bases[idx].blob);
+    cv.imshow(canvPoly.current, bases[idx].poly);
+    // update the bases
+    const newBases = {...bases};
+    newBases[idx] = {
+      blob: bases[idx].blob,
+      poly: bases[idx].poly,
+      orig: orig,
     };
 
-    // emulate SimpleBlobDetector with connected components
-    const gray = grayscaleImage(src);
-    const dst = src.clone();
-    let areas = [];
-    const thresh = new cv.Mat();
-    cv.threshold(gray, thresh, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
+    setBases(newBases);
+  };
 
-    let centers = findBlobs(gray, thresh, params);
 
-    centers.forEach((c, i) => {
-      cv.circle(dst, new cv.Point(c.location.x, c.location.y), c.radius, new cv.Scalar(255, 0, 0, 255), 2);
-      cv.putText(dst, `${i+1}`, new cv.Point(c.location.x, c.location.y), cv.FONT_HERSHEY_SIMPLEX, 1, new cv.Scalar(255, 0, 0, 255), 4);
-      areas.push(c.radius * c.radius * Math.PI / PIXELS_PER_MM);
-    });
+  const clickBlobCanvas = (e) => {
+    const r = canvBlob.current.getBoundingClientRect();
+
+    const xCss = e.clientX - r.left;
+    const yCss = e.clientY - r.top;
+
+    const xBmp = xCss * (canvBlob.current.width / r.width);
+    const yBmp = yCss * (canvBlob.current.height / r.height);
+
+    let mat = bases[idx].blob;
+
+    const scale = canvBlob.current.width / mat.cols;
+
+    const x = xBmp / scale;
+    const y = yBmp / scale;
+    console.log(`Blob click at (${x},${y})`);
+    const hit = rows.find(
+      row => row.imgIdx === idx && ((x-row.blobcenter.x)**2 + (y-row.blobcenter.y)**2 <= row.radius**2)
+    );
+    console.log(`Hit: ${hit ?? "none"}`);
+    if(hit) removeRow(hit.key);
+  };
+
+  const clickPolyCanvas = (e) => {
+    const r = canvPoly.current.getBoundingClientRect();
+
+    const xCss = e.clientX - r.left;
+    const yCss = e.clientY - r.top;
+
+    const xBmp = xCss * (canvBlob.current.width / r.width);
+    const yBmp = yCss * (canvBlob.current.height / r.height);
     
-    gray.delete(); thresh.delete();
+    let mat = bases[idx].poly;
 
-    return { dst, areas };
+    const scale = canvBlob.current.width / mat.cols;
+
+    const x = xBmp / scale;
+    const y = yBmp / scale;
+    console.log(`Poly click at (${x},${y})`);
+    const hit = rows.find(
+      row => row.imgIdx === idx && ((x-row.polycenter.x)**2 + (y-row.polycenter.y)**2 <= row.radius**2)
+    );
+    console.log(`Hit: ${hit ?? "none"}`);
+    if(hit) removeRow(hit.key);
+  }
+  /* ------------------ CSV export ---------------------- */
+  const exportCSV = () => {
+    if(!rows.length) return;
+    const header = "Image,Egg,Otsu(mm^2),Blob(mm^2),Avg(mm^2)\n";
+    let usablerows = rows.filter(r=>!r.removed);
+    const body = usablerows.map(r=>`${r.img},${r.id},${r.otsu},${r.blob},${r.avg}`).join("\n");
+    const b = new Blob([header+body],{type:"text/csv"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(b);
+    a.download="egg_sizes.csv";
+    a.click();
   };
 
-  const processFile = (file) => {
-    readImageToMat(file, (orig) => {
-      // UL: show original
-      cv.imshow(canvUL.current, orig);
-
-      // LL: Otsu threshold of Gaussian‑blurred grayscale
-      const otsu = autoCanny(orig);
-      cv.imshow(canvLL.current, otsu);
-
-      // LR: polygonal approximation on threshold image
-      const { dst: polyDst, areas: otsuAreas } = polyApprox(otsu, orig);
-      cv.imshow(canvLR.current, polyDst);
-
-      // UR: blob detection on original
-      const { dst: blobDst, areas: blobAreas } = detectBlobs(orig);
-      cv.imshow(canvUR.current, blobDst);
-
-      // if we have already processed this file, skip it
-      if (processedFiles.includes(file.name)) {
-        console.log("File already processed:", file.name);
-        orig.delete(); otsu.delete(); polyDst.delete(); blobDst.delete();
-        return;
-      }
-
-      processedFiles.push(file.name);
-
-      // build per‑image result rows
-      const rows = [];
-      const maxLen = Math.max(otsuAreas.length, blobAreas.length);
-
-      for (let i = 0; i < maxLen; ++i) {
-        oA = otsuAreas[i] ?? null;
-        bA = blobAreas[i] ?? null;
-        avgSize = '';
-        if (oA && bA) {
-          avgSize = ((oA + bA) / 2);
-        }
-        rows.push({
-          imgName   : file.name,
-          eggNo     : i + 1,
-          otsuSize  : otsuAreas[i] ?? '',
-          blobSize  : blobAreas[i] ?? '',
-          avgSize: avgSize
-        });
-      }
-
-      setResults((prev) => [...prev, ...rows]);
-
-      // memory cleanup
-      orig.delete(); otsu.delete(); polyDst.delete(); blobDst.delete();
+  const exportJSON = () => {
+    if(!rows.length) return;
+    const usablerows = rows.filter(r=>!r.removed);
+    const output = {results:[]};
+    usablerows.forEach(r => {
+      
+      output.results.push({
+        "Image Name": r.img,
+        "Egg No": r.id,
+        "Otsu Area": r.otsu,
+        "Blob Area": r.blob,
+        "Avg Area": r.avg,
+        "Confidence": r.confidence
+      })
     });
-  };
+    const b = new Blob([JSON.stringify(output,null,2)],{type:"application/json"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(b);
+    a.download="egg_sizes.json";
+    a.click();
+  }
 
-  // --- handlers ------------------------------------------------------------
-  const handleFileChange = (e) => {
-    console.log("File(s) selected:", e.target.files);
-    const selected = Array.from(e.target.files);
-    setFiles(selected);
-    setIndex(0);
-    setResults([]);
-    if (selected.length) processFile(selected[0]);
-  };
 
-  const showImage = (idx) => {
-    if (idx < 0 || idx >= files.length) return;
-    setIndex(idx);
-    processFile(files[idx]);
-  };
-
-  const downloadCSV = () => {
-    if (!results.length) return;
-    const header = 'Image Name,Egg No.,Otsu Size (mm²),Blob Size (mm²)\n';
-    const csv    = header + results.map(r => `${r.imgName},${r.eggNo},${r.otsuSize},${r.blobSize},${r.avgSize}`).join('\n');
-    const blob   = new Blob([csv], { type: 'text/csv' });
-    const link   = document.createElement('a');
-    link.href    = URL.createObjectURL(blob);
-    link.download = 'egg_sizes.csv';
-    document.body.appendChild(link);
+  function matToPngBlob(mat) {
+    return new Promise((resolve) => {
+      const canvas = document.createElement("canvas");
+      cv.imshow(canvas, mat);                   // draw Mat → <canvas>
+      canvas.toBlob((blob) => resolve(blob), "image/png");
+    });
+  }
+  
+  /**
+   * Export every blob / polygon / original image in `bases`
+   * as one ZIP named “egg_images.zip”.
+   *   - `bases[i]`  → { blob: cv.Mat, poly: cv.Mat, orig: cv.Mat }
+   *   - `files[i]`  → original `File` object (for the stem name)
+   */
+  async function exportImages() {
+    const zip = new JSZip();
+  
+    // create an array of Promises so we can await them in parallel
+    const tasks = Object.keys(bases).map(async (i) => {
+      const base   = bases[i];
+      const stem   = files[i].name.replace(/\.[^.]+$/, ""); // filename w/o ext
+  
+      // Mat → Blob (PNG)
+      const [blobPng, polyPng, origPng] = await Promise.all([
+        matToPngBlob(base.blob),
+        matToPngBlob(base.poly),
+        matToPngBlob(base.orig)
+      ]);
+  
+      // add to the ZIP (JSZip accepts Blob objects directly)
+      zip.file(`${stem}-blobs.png`,    blobPng);
+      zip.file(`${stem}-polygons.png`, polyPng);
+      zip.file(`${stem}-original.png`, origPng);
+  
+      // free OpenCV memory
+      base.blob.delete();
+      base.poly.delete();
+      base.orig.delete();
+    });
+  
+    // wait until all Mats are encoded & added
+    await Promise.all(tasks);
+  
+    // generate the archive & trigger download
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(zipBlob);
+    link.download = "egg_images.zip";
     link.click();
-    document.body.removeChild(link);
-  };
+  }
 
-  // --- render --------------------------------------------------------------
+
+  /* ------------------ UI -------------------------------- */
   return (
-
-    <div className="p-4 space-y-4 text-center">
-      <h1 className="text-2xl font-bold">EggSizer CV (Web)</h1>
-
-      {/* Controls */}
-      <div className="flex flex-wrap gap-2 justify-center">
-        <input type="file"
-               multiple
-               accept="image/*"
-               onChange={handleFileChange}
-               className="file:rounded-lg file:border-0 file:bg-gray-800 file:text-white" />
-        <button disabled={index <= 0}
-                className="px-3 py-1 rounded bg-gray-200 disabled:opacity-40"
-                onClick={() => showImage(index - 1)}>Previous Image</button>
-        <button disabled={index >= files.length - 1}
-                className="px-3 py-1 rounded bg-gray-200 disabled:opacity-40"
-                onClick={() => showImage(index + 1)}>Next Image</button>
-        <button className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-40"
-                disabled={!results.length}
-                onClick={downloadCSV}>Save Results</button>
+    <div className="page">
+      {/*header*/}
+      <h1 className="title">EggsizerML Web</h1>
+      <div className="btn-row">
+        <input type="file" multiple accept="image/*" disabled={!cvReady||processing} onChange={onFileChange}
+               className="file:rounded-lg file:border-0 file:bg-gray-800 file:text-white disabled:opacity-40" />  
+        <label className="flex items-center gap-2">
+          <span>Pixels per MM: </span>
+          <input type="number" value={pxPerMm} onChange={handlePxPerMmChange} min="1" className="px-2 py-1 border rounded" placeholder="Pixels per mm" />
+        </label>
+        <button onClick={()=>setIdx(i=>Math.max(0,i-1))} disabled={idx<=0 || processing} className="px-3 py-1 bg-gray-800 rounded disabled:opacity-40">Previous Image</button>
+        <button onClick={()=>setIdx(i=>Math.min(files.length-1,i+1))} disabled={idx>=files.length-1 || processing} className="px-3 py-1 bg-gray-800 rounded disabled:opacity-40">Next Image</button>
+        <button onClick={exportCSV} disabled={!rows.length} className="blue">Export CSV</button>
+        <button onClick={exportJSON} disabled={!rows.length} className="blue">Export JSON</button>
+        <button onClick={exportImages} disabled={!rows.length} className="green">Export Images</button>
       </div>
-      <div className="grid grid-cols-2 gap-4 justify-items-center">
-        <div className="row">
-          <div className="twocolumn">
-            <p className="font-semibold">Uploaded Image</p>
-            <canvas ref={canvUL} width={400} height={300} style={CANVAS_SIZE} />
+      
+      <section className="main">
+        <div className="left">
+          <div className="canvas-group">
+            <p className="caption">Blob Detection</p>
+            <div className="canvas-box">
+              <canvas ref={canvBlob} onClick={clickBlobCanvas}/>
+            </div>
           </div>
-          <div className="twocolumn">
-            <p className="font-semibold">Blob Processed Image</p>
-            <canvas ref={canvUR} width={400} height={300} style={CANVAS_SIZE} />
+          <div className="canvas-group">
+            <p className="caption">Polygonal Approximation</p>
+            <div className="canvas-box">
+              <canvas ref={canvPoly} onClick={clickPolyCanvas}/>
+            </div>
           </div>
         </div>
-        <div className="row">
-          <div className="twocolumn">
-            <p className="font-semibold">Otsu's Processed Image</p>
-            <canvas ref={canvLL} width={400} height={300} style={CANVAS_SIZE} />
-          </div>
-          <div className="twocolumn">
-            <p className="font-semibold">Polygonally Approximated Otsu's Image</p>
-            <canvas ref={canvLR} width={400} height={300} style={CANVAS_SIZE} />
-          </div>
-        </div>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="table-auto mx-auto border mt-4">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="px-2 border">Image</th>
-              <th className="px-2 border">Egg No.</th>
-              <th className="px-2 border">Otsu Size (mm²)</th>
-              <th className="px-2 border">Blob Size (mm²)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((row, i) => (
-              <tr key={i}>
-                <td className="px-2 border whitespace-nowrap">{row.imgName}</td>
-                <td className="px-2 border text-center">{row.eggNo}</td>
-                <td className="px-2 border text-right">{row.otsuSize}</td>
-                <td className="px-2 border text-right">{row.blobSize}</td>
-                <td className="px-2 border text-right">{row.avgSize}</td>
+        <div className="right">
+          {!cvReady && <p className="text-center text-red-600 mt-4">Loading OpenCV …</p>}
+          {processing && <p className="text-center mt-2">Processing {files.length} images …</p>}
+          <table className="data-table">
+            <thead className="sticky top-0 bg-gray-100">
+              <tr>
+                <th className="px-2 border">Image</th>
+                <th className="px-2 border">Egg #</th>
+                <th className="px-2 border">Otsu</th>
+                <th className="px-2 border">Blob</th>
+                <th className="px-2 border">Avg</th>
+                <th className="px-2 border">Confidence</th>
+                <th className="px-2 border">Toggle</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
+            </thead>
+            <tbody>
+              {
+                // filter rows out to only show the current image in the table
+              rows.filter(
+                r => r.imgIdx === idx
+              ).map( r => (
+              <tr key={r.key}>
+                <td className="px-2 border whitespace-nowrap">{r.img}</td>
+                <td className="px-2 border text-center">{r.id}</td>
+                <td className="px-2 border text-right">{r.otsu}</td>
+                <td className="px-2 border text-right">{r.blob}</td>
+                <td className="px-2 border text-right">{r.avg}</td>
+                <td className="px-2 border text-right">{r.confidence.toFixed(2)}</td>
+                <td className="px-2 border text-center"><button className="text-red-600" onClick={()=>removeRow(r.key)}>✖</button></td></tr>))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
+    
   );
 }

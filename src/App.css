@@ -1,47 +1,140 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+/* ===== page-level ===== */
+.page {
+  height: 100vh;                 /* full viewport */
+  display: grid;
+  grid-template-rows: auto auto 1fr;  /* title | buttons | main */
+  gap: 0.75rem;
+  padding: 0.75rem;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+  margin-inline: auto;
+}
+
+.title {
+  text-align: center;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  margin: 0;
+}
+
+/* ===== button row ===== */
+.btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 1.6rem;
+  flex-wrap: wrap;               /* wraps nicely on narrow screens */
+}
+
+.btn-row button {
+  padding: 0.4rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid #888;
+  color: #f7f7f7;
+  background: #333;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-row button:hover { background: #444; }
+.btn-row button:active { background: #555; }
+
+/* make one for blue button too */
+.btn-row .blue {
+  background: #007bff;
+  border: 1px solid #007bff;
+}
+.btn-row .blue:hover { background: #008cff; }
+.btn-row .blue:active { background: #0099ff; }
+
+
+.btn-row .green {
+  background: #28a745;
+  border: 1px solid #28a745;
+}
+.btn-row .green:hover { background: #29b856; }
+.btn-row .green:active { background: #2acb67; }
+
+
+/* ===== main 2-column area ===== */
+.main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  overflow: hidden;                 /* keeps table scroll neatly */
+  min-height: 0;
+}
+
+/* — left column — */
+.left {
+  display: grid;
+  grid-template-rows: 1fr 1fr;      /* two equal-height rows */
+  gap: 0.75rem;
+  min-height: 0;
+}
+
+.canvas-group {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 0;
+}
+
+.caption { 
+  text-align: center;
+  margin: 0 0 0.4rem 0;
+  font-weight: 600;
+}
+
+.canvas-box {
+  border: 2px solid #333;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;              /* center any placeholder text */
+  justify-content: center;
+  overflow: hidden;                 /* canvases won’t leak out */
+  position: relative;             /* for absolute children */
+  min-height: 0;
+}
+
+canvas { 
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
   text-align: center;
 }
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.data-table th,
+.data-table td {
+  padding: .35rem 0.6rem;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.data-table tr:not(:last-child) th,
+.data-table tr:not(:last-child) td {
+  border-bottom: 2px solid #888;   /* bottom border on all but last row */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.data-table th:not(:last-child),
+.data-table td:not(:last-child) {
+  border-bottom: 1px solid #888;   /* bottom border on all but last row */
 }
 
-.card {
-  padding: 2em;
+/* — right column — */
+.right {
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 0.5rem;
+  overflow: auto;                   /* table scrolls inside */
+  overflow-y: auto;
 }
 
-.read-the-docs {
-  color: #888;
+.left, .right {
+  min-width: 0;
 }
 
-table, th, td {
-  border: 1px solid #ddd;
-  border-collapse: collapse;
+/* ===== responsive tweak – single column under 900 px ===== */
+@media (max-width: 1100px) {
+  .main { grid-template-columns: 1fr;}
+  .right { max-height: 45vh; }      /* avoid huge table on phones */
 }

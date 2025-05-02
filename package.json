@@ -1,6 +1,6 @@
 {
-  "name": "eggsizer",
-  "homepage": "https://jaxmattfair.github.io/eggsizerML/",
+  "name": "egg-sizer",
+  "homepage": "https://bennybot.github.io/eggsizerML-Web/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,10 +10,12 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "full": "git add * && git commit -m 'deploy' && git push && npm run deploy"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.4",
+    "jszip": "^3.10.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
