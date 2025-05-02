@@ -1,8 +1,8 @@
 {
-  "name": "egg-sizer",
-  "homepage": "https://bennybot.github.io/eggsizerML-Web/",
+  "name": "eggsizerML",
+  "homepage": "https://jaxmattfair.github.io/eggsizerML/",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
