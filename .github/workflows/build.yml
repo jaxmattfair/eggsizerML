@@ -77,9 +77,9 @@ jobs:
           git clone https://github.com/microsoft/vcpkg.git C:/vcpkg
           C:/vcpkg/bootstrap-vcpkg.bat
 
-      # - name: Install Boost with vcpkg
-      #   run: |
-      #     C:/vcpkg/vcpkg install boost
+      - name: Install Boost with vcpkg
+        run: |
+          C:/vcpkg/vcpkg install boost
 
       - name: Build MSVC
         if: matrix.os == 'windows-latest'
