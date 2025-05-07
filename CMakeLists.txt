@@ -38,16 +38,6 @@ set(PROJECT_SOURCES
 )
 enable_testing()
 
-if(DEFINED ENV{GITHUB_ACTIONS})
-    if(WIN32)
-        set(Boost_NO_SYSTEM_PATHS ON)
-        set(Boost_USE_STATIC_LIBS OFF)
-        set(Boost_USE_MULTITHREADED ON)
-        set(Boost_USE_STATIC_RUNTIME OFF)
-    endif()
-endif()
-
-find_package(Boost 1.82.0 REQUIRED)
 
 # ----------------------------
 # Accuracy Test Setup
@@ -61,13 +51,11 @@ add_executable(accuracy_test
 )
 
 target_include_directories(accuracy_test PRIVATE
-    ${Boost_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
     include
 )
 
 target_link_libraries(accuracy_test PRIVATE
-    ${Boost_LIBRARIES}
     ${OpenCV_LIBS}
 )
 
