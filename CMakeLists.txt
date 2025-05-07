@@ -47,7 +47,7 @@ if(DEFINED ENV{GITHUB_ACTIONS})
     endif()
 endif()
 
-find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+find_package(Boost 1.82.0 REQUIRED)
 
 # ----------------------------
 # Accuracy Test Setup
