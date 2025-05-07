@@ -26,12 +26,12 @@ set(PROJECT_SOURCES
         src/main.cpp
         src/eggsizerml.cpp
         src/eggsizerml.ui
-        src/cannyDetect.cpp
+        src/otsuThreshold.cpp
         src/blobDetect.cpp
         src/measureEdges.cpp
         include/eggsizerml.h
         include/asmOpenCV.h
-        include/cannyDetect.h
+        include/otsuThreshold.h
         include/blobDetect.h
         include/measureEdges.h
 )
