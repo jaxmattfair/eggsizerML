@@ -2,6 +2,9 @@
 #define RESULTSTRUCTS_H
 
 #include <map>
+#include <cmath>
+#include <string>
+#include <vector>
 
 struct eggMeasurement {
   int eggLabel;

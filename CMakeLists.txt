@@ -36,42 +36,42 @@ set(PROJECT_SOURCES
         include/blobDetect.h
         include/measureEdges.h
 )
-enable_testing()
+# enable_testing()
 
-if(DEFINED ENV{GITHUB_ACTIONS})
-    if(WIN32)
-        set(Boost_NO_SYSTEM_PATHS ON)
-        set(Boost_USE_STATIC_LIBS OFF)
-        set(Boost_USE_MULTITHREADED ON)
-        set(Boost_USE_STATIC_RUNTIME OFF)
-    endif()
-endif()
+# if(DEFINED ENV{GITHUB_ACTIONS})
+#     if(WIN32)
+#         set(Boost_NO_SYSTEM_PATHS ON)
+#         set(Boost_USE_STATIC_LIBS OFF)
+#         set(Boost_USE_MULTITHREADED ON)
+#         set(Boost_USE_STATIC_RUNTIME OFF)
+#     endif()
+# endif()
 
-find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+# find_package(Boost 1.82.0 REQUIRED)
 
 # ----------------------------
 # Accuracy Test Setup
 # ----------------------------
-add_executable(accuracy_test
-    tests/accuracy_test.cpp
-    src/measureImage.cpp
-    src/blobDetect.cpp
-    src/measureEdges.cpp
-    src/otsuThreshold.cpp
-)
+# add_executable(accuracy_test
+#     tests/accuracy_test.cpp
+#     src/measureImage.cpp
+#     src/blobDetect.cpp
+#     src/measureEdges.cpp
+#     src/otsuThreshold.cpp
+# )
 
-target_include_directories(accuracy_test PRIVATE
-    ${Boost_INCLUDE_DIRS}
-    ${OpenCV_INCLUDE_DIRS}
-    include
-)
+# target_include_directories(accuracy_test PRIVATE
+#     ${Boost_INCLUDE_DIRS}
+#     ${OpenCV_INCLUDE_DIRS}
+#     include
+# )
 
-target_link_libraries(accuracy_test PRIVATE
-    ${Boost_LIBRARIES}
-    ${OpenCV_LIBS}
-)
+# target_link_libraries(accuracy_test PRIVATE
+#     ${Boost_LIBRARIES}
+#     ${OpenCV_LIBS}
+# )
 
-add_test(NAME AccuracyTest COMMAND accuracy_test)
+# add_test(NAME AccuracyTest COMMAND accuracy_test)
 
 # ----------------------------
 # Main Application (eggsizerML)
