@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#define M_PI 3.14159265358979323846 // Define M_PI if not already defined
+
 struct eggMeasurement {
   int eggLabel;
   double otsuArea;
