@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-
 project(eggsizerML VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
@@ -27,61 +26,32 @@ set(PROJECT_SOURCES
         src/main.cpp
         src/eggsizerml.cpp
         src/eggsizerml.ui
-        src/otsuThreshold.cpp
+        src/cannyDetect.cpp
         src/blobDetect.cpp
         src/measureEdges.cpp
         include/eggsizerml.h
         include/asmOpenCV.h
-        include/otsuThreshold.h
+        include/cannyDetect.h
         include/blobDetect.h
         include/measureEdges.h
 )
-enable_testing()
 
-
-# ----------------------------
-# Accuracy Test Setup
-# ----------------------------
-add_executable(accuracy_test
-    tests/accuracy_test.cpp
-    src/measureImage.cpp
-    src/blobDetect.cpp
-    src/measureEdges.cpp
-    src/otsuThreshold.cpp
-)
-
-target_include_directories(accuracy_test PRIVATE
-    ${OpenCV_INCLUDE_DIRS}
-    include
-)
-
-target_link_libraries(accuracy_test PRIVATE
-    ${OpenCV_LIBS}
-)
-
-add_test(NAME AccuracyTest COMMAND accuracy_test)
-
-# ----------------------------
-# Main Application (eggsizerML)
-# ----------------------------
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(eggsizerML
         MANUAL_FINALIZATION
-        ${PROJECT_SOURCES}
-        src/measureImage.cpp
-        src/blobDetect.cpp
-        src/measureEdges.cpp
-        include/measureImage.hpp
-        include/blobDetect.h
-        include/measureEdges.h
-        include/otsuThreshold.h
+        ${PROJECT_SOURCES}  
     )
+# Define target properties for Android with Qt 6 as:
+#    set_property(TARGET eggsizerML APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
+#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
+# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 else()
     if(ANDROID)
         add_library(eggsizerML SHARED
             ${PROJECT_SOURCES}
         )
-        # set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
+# Define properties for Android with Qt 5 after find_package() calls as:
+#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
         add_executable(eggsizerML
             ${PROJECT_SOURCES}
@@ -89,15 +59,9 @@ else()
     endif()
 endif()
 
-target_include_directories(eggsizerML PRIVATE
-    ${OpenCV_INCLUDE_DIRS}
-    include
-)
-
-target_link_libraries(eggsizerML PRIVATE
-    Qt${QT_VERSION_MAJOR}::Widgets
-    ${OpenCV_LIBS}
-)
+target_link_libraries(eggsizerML PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_include_directories(eggsizerML PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(eggsizerML PRIVATE ${OpenCV_LIBS})
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
