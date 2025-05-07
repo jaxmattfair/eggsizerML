@@ -15,13 +15,13 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-      
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Linux Dependencies
         if: matrix.os == 'ubuntu-latest'
@@ -29,7 +29,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake libopencv-dev
           sudo apt install qtbase6-dev qtchooser qt6-qmake qtbase6-dev-tools
-      
+
       - name: Windows Dependencies
         if: matrix.os == 'windows-latest'
         run: |
@@ -49,7 +49,7 @@ jobs:
           python -m pip install -U pip
           python -m pip install aqtinstall
           aqt install-qt windows desktop 6.8.2 win64_msvc2022_64 -m all
-        
+
       - name: macOS Dependencies
         if: runner.os == 'macOS'
         run: |
@@ -91,7 +91,6 @@ jobs:
           cmake -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -DOpenCV_DIR=C:/tools/opencv/build -DBOOST_ROOT=C:/vcpkg/installed/x64-windows -DBoost_INCLUDE_DIR=C:/vcpkg/installed/x64-windows/include -DBoost_LIBRARY_DIR=C:/vcpkg/installed/x64-windows/lib -DBoost_USE_STATIC_LIBS=OFF -DBoost_USE_DYNAMIC_LIBS=ON -DBoost_COMPONENTS=unit_test_framework ..
           cmake --build . --config Release
 
-
       - name: Package Windows Deps
         if: matrix.os == 'windows-latest'
         run: |
@@ -103,7 +102,7 @@ jobs:
           cd D:\a\eggsizerML\eggsizerML\build\
 
           ls
-          
+
           # cpack --config ../CPackConfig.cmake
 
       - name: Package macOS 13 Deps
@@ -111,13 +110,12 @@ jobs:
         run: |
           cd build
           /usr/local/Cellar/qt/6.8.2_1/bin/macdeployqt eggsizerML.app -dmg -no-strip -appstore-compliant -executable=eggsizerML.app/Contents/MacOS/eggsizerML
-          
+
       - name: Package macOS 14 Deps
         if: matrix.os == 'macos-14'
         run: |
           cd build
           /opt/homebrew/Cellar/qt/6.8.2_1/bin/macdeployqt eggsizerML.app -dmg -no-strip -appstore-compliant -executable=eggsizerML.app/Contents/MacOS/eggsizerML
-          
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4

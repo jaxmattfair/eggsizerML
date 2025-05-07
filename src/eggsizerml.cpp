@@ -15,14 +15,8 @@ eggsizerML::eggsizerML(QWidget *parent)
   ui->setupUi(this);
   int fixedImageWidth = 400; // Adjust to match your design
 
-  ui->imgDisp_ul->setMinimumWidth(fixedImageWidth);
-  ui->imgDisp_ul->setMaximumWidth(fixedImageWidth);
-
   ui->imgDisp_ur->setMinimumWidth(fixedImageWidth);
   ui->imgDisp_ur->setMaximumWidth(fixedImageWidth);
-
-  ui->imgDisp_ll->setMinimumWidth(fixedImageWidth);
-  ui->imgDisp_ll->setMaximumWidth(fixedImageWidth);
 
   ui->imgDisp_lr->setMinimumWidth(fixedImageWidth);
   ui->imgDisp_lr->setMaximumWidth(fixedImageWidth);
@@ -150,9 +144,14 @@ bool eggsizerML::loadFile(const QString &fileName) {
     return false;
   }
 
-  // display input image
-  ui->imgDisp_ul->setPixmap(QPixmap::fromImage(originalImage));
+  // Otsu's threshold and display
   orig = cv::imread(fileName.toStdString());
+  autoCanny(&orig, &cannyDst);
+
+  // polygonally approximate and display
+  std::vector<double> otsus_areas =
+      polyApproxFromEdges(&cannyDst, &polyDst, &orig);
+  ui->imgDisp_lr->setPixmap(ASM::cvMatToQPixmap(polyDst));
 
   // measure image and display
   std::vector<eggMeasurement> eggMeasurements =
@@ -162,34 +161,47 @@ bool eggsizerML::loadFile(const QString &fileName) {
   ui->imgDisp_lr->setPixmap(ASM::cvMatToQPixmap(polyDst));
   ui->imgDisp_ur->setPixmap(ASM::cvMatToQPixmap(blobDst));
 
-  // update table with egg measurements
-  // #NOTE: UPDATE TABLE HEADERS BASED ON USER CONFIG HERE
-  int numEggs = eggMeasurements.size();
-  ui->tableWidget->setRowCount(numEggs);
-  for (int i = 0; i < numEggs; i++) {
-    QTableWidgetItem *item1 =
-        new QTableWidgetItem(QString::number(eggMeasurements[i].eggLabel));
-    QTableWidgetItem *item2 = new QTableWidgetItem(
-        QString::number(eggMeasurements[i].otsuArea, 'f', 2));
-    QTableWidgetItem *item3 = new QTableWidgetItem(
-        QString::number(eggMeasurements[i].blobArea, 'f', 2));
-    QTableWidgetItem *item4 = new QTableWidgetItem(
-        QString::number(eggMeasurements[i].avgArea, 'f', 2));
-    QTableWidgetItem *item5 = new QTableWidgetItem(
-        QString::number(eggMeasurements[i].confidence, 'f', 2));
-    QTableWidgetItem *item6 = new QTableWidgetItem(
-        QString::number(eggMeasurements[i].otsuWidth, 'f', 2));
-    QTableWidgetItem *item7 = new QTableWidgetItem(
-        QString::number(eggMeasurements[i].blobWidth, 'f', 2));
-    ui->tableWidget->setItem(i, 0, item1);
-    ui->tableWidget->setItem(i, 1, item2);
-    ui->tableWidget->setItem(i, 2, item3);
-    ui->tableWidget->setItem(i, 3, item4);
-    ui->tableWidget->setItem(i, 4, item5);
-    ui->tableWidget->setItem(i, 5, item6);
-    ui->tableWidget->setItem(i, 6, item7);
-  }
+  // display all areas to table (first column egg no, second otsus area, third
+  // blob area)
+  int numRows = std::max(otsus_areas.size(), blob_areas.size());
+  ui->tableWidget->setRowCount(numRows);
+  for (int i = 0; i < numRows; i++) {
+      QTableWidgetItem *item1 = new QTableWidgetItem(QString::number(i + 1));
+      ui->tableWidget->setItem(i, 0, item1);
 
+      if (i < otsus_areas.size()) {
+          QTableWidgetItem *item2 =
+              new QTableWidgetItem(QString::number(otsus_areas[i]));
+          ui->tableWidget->setItem(i, 1, item2);
+      }
+
+      if (i < blob_areas.size()) {
+          QTableWidgetItem *item3 =
+              new QTableWidgetItem(QString::number(blob_areas[i]));
+          ui->tableWidget->setItem(i, 2, item3);
+      }
+
+      // Now, let's calculate and display the widths and confidence score
+      eggMeasurement egg;
+      egg.otsuArea = (i < otsus_areas.size()) ? otsus_areas[i] : -1.0;
+      egg.blobArea = (i < blob_areas.size()) ? blob_areas[i] : -1.0;
+      egg.computeWidths();  // Compute the widths from areas
+      egg.computeConfidence();  // Compute the confidence score
+
+      // Display the widths and confidence score
+      QTableWidgetItem *item4 = new QTableWidgetItem(QString::number(egg.otsuWidth, 'f', 2));
+      ui->tableWidget->setItem(i, 3, item4);
+
+      QTableWidgetItem *item5 = new QTableWidgetItem(QString::number(egg.blobWidth, 'f', 2));
+      ui->tableWidget->setItem(i, 4, item5);
+
+      QTableWidgetItem *item6 = new QTableWidgetItem(QString::number(egg.confidenceScore, 'f', 2));
+      ui->tableWidget->setItem(i, 5, item6);
+  }
+  QHeaderView *header = ui->tableWidget->horizontalHeader();
+  header->setSectionResizeMode(QHeaderView::Stretch);
+  ui->tableWidget->resizeColumnsToContents();
+  ui->tableWidget->resizeRowsToContents();
   return true;
 }
 
